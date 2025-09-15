@@ -86,10 +86,16 @@ class PdfService {
     final visibleKatlar = project.katlar;
 
     return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         _buildSummaryStrip(project),
-        pw.SizedBox(height: 16),
-        if (project.showCati) _buildCatiRoof(),
+        pw.SizedBox(height: 12),
+        if (project.showCati) 
+          pw.Container(
+            height: 40,
+            child: _buildCatiRoof(),
+          ),
+        pw.SizedBox(height: 8),
         if (visibleKatlar.isEmpty)
           pw.Expanded(
             child: pw.Center(
@@ -101,11 +107,15 @@ class PdfService {
           )
         else
           pw.Expanded(
-            child: pw.Column(
+            child: pw.ListView(
               children: visibleKatlar.map((kat) => _buildFloorCard(kat)).toList(),
             ),
           ),
-        if (project.showOtopark) _buildOtoparkSection(),
+        if (project.showOtopark) 
+          pw.Container(
+            height: 30,
+            child: _buildOtoparkSection(),
+          ),
       ],
     );
   }
@@ -160,28 +170,25 @@ class PdfService {
   }
 
   pw.Widget _buildCatiRoof() {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 8),
+    return pw.Center(
       child: pw.CustomPaint(
-        size: const PdfPoint(120, 30),
+        size: const PdfPoint(150, 30),
         painter: (PdfGraphics canvas, PdfPoint size) {
           canvas
-            ..setColor(PdfColors.red300)
-            ..moveTo(size.x * 0.1, size.y * 0.8)
+            ..setColor(PdfColors.red400)
+            ..moveTo(size.x * 0.1, size.y)
             ..lineTo(size.x * 0.5, size.y * 0.1)
-            ..lineTo(size.x * 0.9, size.y * 0.8)
-            ..lineTo(size.x * 0.85, size.y)
-            ..lineTo(size.x * 0.15, size.y)
+            ..lineTo(size.x * 0.9, size.y)
             ..closePath()
             ..fillPath();
           
           canvas
-            ..setColor(PdfColors.red200)
-            ..moveTo(size.x * 0.15, size.y)
-            ..lineTo(size.x * 0.5, size.y * 0.2)
-            ..lineTo(size.x * 0.85, size.y)
+            ..setColor(PdfColors.red600)
+            ..moveTo(size.x * 0.1, size.y)
+            ..lineTo(size.x * 0.5, size.y * 0.1)
+            ..lineTo(size.x * 0.9, size.y)
             ..closePath()
-            ..fillPath();
+            ..strokePath();
         },
       ),
     );
@@ -189,8 +196,8 @@ class PdfService {
 
   pw.Widget _buildFloorCard(floor) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 8),
-      padding: const pw.EdgeInsets.all(12),
+      margin: const pw.EdgeInsets.only(bottom: 4),
+      padding: const pw.EdgeInsets.all(8),
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: PdfColors.grey300),
         borderRadius: pw.BorderRadius.circular(4),

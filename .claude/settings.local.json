@@ -16,7 +16,9 @@
       "Bash(git checkout:*)",
       "Bash(git rm:*)",
       "Bash(vercel:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npx netlify-cli deploy:*)",
+      "Bash(npx surge:*)"
     ],
     "deny": [],
     "ask": []
