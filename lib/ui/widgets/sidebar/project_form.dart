@@ -12,18 +12,24 @@ class ProjectForm extends ConsumerStatefulWidget {
 class _ProjectFormState extends ConsumerState<ProjectForm> {
   late TextEditingController _projeAdiController;
   late TextEditingController _adresController;
+  late TextEditingController _malSahibiController;
+  late TextEditingController _cizenController;
 
   @override
   void initState() {
     super.initState();
     _projeAdiController = TextEditingController();
     _adresController = TextEditingController();
+    _malSahibiController = TextEditingController();
+    _cizenController = TextEditingController();
   }
 
   @override
   void dispose() {
     _projeAdiController.dispose();
     _adresController.dispose();
+    _malSahibiController.dispose();
+    _cizenController.dispose();
     super.dispose();
   }
 
@@ -37,6 +43,12 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     }
     if (_adresController.text != project.adres) {
       _adresController.text = project.adres;
+    }
+    if (_malSahibiController.text != project.malSahibi) {
+      _malSahibiController.text = project.malSahibi;
+    }
+    if (_cizenController.text != project.cizen) {
+      _cizenController.text = project.cizen;
     }
 
     return Card(
@@ -75,6 +87,32 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
               onChanged: (value) {
                 ref.read(projectProvider.notifier).updateProjectInfo(
                   adres: value,
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _malSahibiController,
+              decoration: const InputDecoration(
+                labelText: 'Mal Sahibi',
+                hintText: 'Mal sahibi adını giriniz',
+              ),
+              onChanged: (value) {
+                ref.read(projectProvider.notifier).updateProjectInfo(
+                  malSahibi: value,
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _cizenController,
+              decoration: const InputDecoration(
+                labelText: 'Çizen',
+                hintText: 'Mimar/çizen adını giriniz',
+              ),
+              onChanged: (value) {
+                ref.read(projectProvider.notifier).updateProjectInfo(
+                  cizen: value,
                 );
               },
             ),

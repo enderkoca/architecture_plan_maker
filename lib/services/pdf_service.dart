@@ -83,18 +83,13 @@ class PdfService {
   }
 
   pw.Widget _buildCanvas(ProjectModel project) {
-    final visibleKatlar = project.katlar.where((kat) {
-      if (kat.ad.toLowerCase().contains('çatı')) {
-        return project.showCati;
-      }
-      return true;
-    }).toList();
+    final visibleKatlar = project.katlar;
 
     return pw.Column(
       children: [
         _buildSummaryStrip(project),
         pw.SizedBox(height: 16),
-        if (project.showCati) _buildCatiTriangle(),
+        if (project.showCati) _buildCatiRoof(),
         if (visibleKatlar.isEmpty)
           pw.Expanded(
             child: pw.Center(
@@ -164,17 +159,27 @@ class PdfService {
     );
   }
 
-  pw.Widget _buildCatiTriangle() {
+  pw.Widget _buildCatiRoof() {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 8),
       child: pw.CustomPaint(
-        size: const PdfPoint(100, 20),
+        size: const PdfPoint(120, 30),
         painter: (PdfGraphics canvas, PdfPoint size) {
           canvas
-            ..setColor(PdfColors.orange300)
-            ..moveTo(size.x * 0.2, size.y)
-            ..lineTo(size.x * 0.5, 0)
-            ..lineTo(size.x * 0.8, size.y)
+            ..setColor(PdfColors.red300)
+            ..moveTo(size.x * 0.1, size.y * 0.8)
+            ..lineTo(size.x * 0.5, size.y * 0.1)
+            ..lineTo(size.x * 0.9, size.y * 0.8)
+            ..lineTo(size.x * 0.85, size.y)
+            ..lineTo(size.x * 0.15, size.y)
+            ..closePath()
+            ..fillPath();
+          
+          canvas
+            ..setColor(PdfColors.red200)
+            ..moveTo(size.x * 0.15, size.y)
+            ..lineTo(size.x * 0.5, size.y * 0.2)
+            ..lineTo(size.x * 0.85, size.y)
             ..closePath()
             ..fillPath();
         },
@@ -591,12 +596,15 @@ class PdfService {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(
-              TextUtils.toAscii('DIKILITAS - 478 ada 14 parsel'),
+              TextUtils.toAscii(project.adres.isNotEmpty ? project.adres : 'Adres belirtilmemiş'),
               style: const pw.TextStyle(fontSize: 8),
             ),
-            pw.Text('', style: const pw.TextStyle(fontSize: 8)),
             pw.Text(
-              TextUtils.toAscii('Hasan Cemal Kayaci'),
+              TextUtils.toAscii(project.malSahibi.isNotEmpty ? project.malSahibi : 'Mal sahibi belirtilmemiş'),
+              style: const pw.TextStyle(fontSize: 8),
+            ),
+            pw.Text(
+              TextUtils.toAscii(project.cizen.isNotEmpty ? project.cizen : 'Çizen belirtilmemiş'),
               style: const pw.TextStyle(fontSize: 8),
             ),
           ],

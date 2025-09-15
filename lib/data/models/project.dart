@@ -8,12 +8,16 @@ class ProjectModel {
     required this.projeAdi,
     required this.adres,
     required this.katlar,
+    this.malSahibi = '',
+    this.cizen = '',
     this.showCati = true,
     this.showOtopark = true,
   });
 
   final String projeAdi;
   final String adres;
+  final String malSahibi;
+  final String cizen;
   final List<FloorModel> katlar;
   final bool showCati;
   final bool showOtopark;
@@ -39,6 +43,8 @@ class ProjectModel {
   ProjectModel copyWith({
     String? projeAdi,
     String? adres,
+    String? malSahibi,
+    String? cizen,
     List<FloorModel>? katlar,
     bool? showCati,
     bool? showOtopark,
@@ -46,6 +52,8 @@ class ProjectModel {
     return ProjectModel(
       projeAdi: projeAdi ?? this.projeAdi,
       adres: adres ?? this.adres,
+      malSahibi: malSahibi ?? this.malSahibi,
+      cizen: cizen ?? this.cizen,
       katlar: katlar ?? this.katlar,
       showCati: showCati ?? this.showCati,
       showOtopark: showOtopark ?? this.showOtopark,
@@ -56,6 +64,8 @@ class ProjectModel {
     return {
       'projeAdi': projeAdi,
       'adres': adres,
+      'malSahibi': malSahibi,
+      'cizen': cizen,
       'katlar': katlar.map((k) => k.toJson()).toList(),
       'showCati': showCati,
       'showOtopark': showOtopark,
@@ -66,6 +76,8 @@ class ProjectModel {
     return ProjectModel(
       projeAdi: json['projeAdi'] as String,
       adres: json['adres'] as String,
+      malSahibi: json['malSahibi'] as String? ?? '',
+      cizen: json['cizen'] as String? ?? '',
       katlar: (json['katlar'] as List<dynamic>)
           .map((k) => FloorModel.fromJson(k as Map<String, dynamic>))
           .toList(),
@@ -80,6 +92,8 @@ class ProjectModel {
     return other is ProjectModel &&
         other.projeAdi == projeAdi &&
         other.adres == adres &&
+        other.malSahibi == malSahibi &&
+        other.cizen == cizen &&
         listEquals(other.katlar, katlar) &&
         other.showCati == showCati &&
         other.showOtopark == showOtopark;
@@ -90,6 +104,8 @@ class ProjectModel {
     return Object.hash(
       projeAdi,
       adres,
+      malSahibi,
+      cizen,
       Object.hashAll(katlar),
       showCati,
       showOtopark,
@@ -98,6 +114,6 @@ class ProjectModel {
 
   @override
   String toString() {
-    return 'ProjectModel(projeAdi: $projeAdi, adres: $adres, katlar: ${katlar.length}, showCati: $showCati, showOtopark: $showOtopark)';
+    return 'ProjectModel(projeAdi: $projeAdi, adres: $adres, malSahibi: $malSahibi, cizen: $cizen, katlar: ${katlar.length}, showCati: $showCati, showOtopark: $showOtopark)';
   }
 }

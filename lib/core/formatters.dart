@@ -82,6 +82,12 @@ class TextUtils {
         .replaceAll('Ş', 'S')
         .replaceAll('ü', 'u')
         .replaceAll('Ü', 'U')
-        .replaceAll('—', '-');
+        .replaceAll('—', '-')
+        .replaceAll(RegExp(r'[\u{1F600}-\u{1F64F}]', unicode: true), '')
+        .replaceAll(RegExp(r'[\u{1F300}-\u{1F5FF}]', unicode: true), '')
+        .replaceAll(RegExp(r'[\u{1F680}-\u{1F6FF}]', unicode: true), '')
+        .replaceAll(RegExp(r'[\u{1F1E0}-\u{1F1FF}]', unicode: true), '')
+        .replaceAll(RegExp(r'[\u{2600}-\u{26FF}]', unicode: true), '')
+        .replaceAll(RegExp(r'[\u{2700}-\u{27BF}]', unicode: true), '');
   }
 }

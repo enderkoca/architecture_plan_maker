@@ -25,10 +25,12 @@ class ProjectNotifier extends StateNotifier<ProjectModel> {
     await _persistenceService.saveProject(state);
   }
 
-  void updateProjectInfo({String? projeAdi, String? adres}) {
+  void updateProjectInfo({String? projeAdi, String? adres, String? malSahibi, String? cizen}) {
     state = state.copyWith(
       projeAdi: projeAdi ?? state.projeAdi,
       adres: adres ?? state.adres,
+      malSahibi: malSahibi ?? state.malSahibi,
+      cizen: cizen ?? state.cizen,
     );
     _saveProject();
   }
