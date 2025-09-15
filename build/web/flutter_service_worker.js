@@ -3,14 +3,16 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "5d3c67ab98cd9a16ff8392932b3de3b9",
+const RESOURCES = {"flutter_bootstrap.js": "e1b63b919a6c51b26f95f7228f5796f6",
 "version.json": "0637c0617af51ca4ed9f8ba26853eb0d",
 "index.html": "6b3f2751a1685ef8c0f9ff95b14be8f3",
 "/": "6b3f2751a1685ef8c0f9ff95b14be8f3",
 "vercel.json": "d8ea61707a9ed3b6ac58416457fd46b7",
-"main.dart.js": "06718e95cf5a98215cc92bf11f1f074b",
+"main.dart.js": "756b87aae760c59c6b68ae6cdcff6c6d",
 "flutter.js": "888483df48293866f9f41d3d9274a779",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796",
+".netlify/state.json": "7ede9a4d4bd6d099171d6111c4fa6c73",
+".netlify/netlify.toml": "8b76fe5ccb58cc47e120987bc23125fe",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
 "icons/Icon-maskable-192.png": "c457ef57daa1d16f64b27b786ec2ea3c",
 "icons/Icon-maskable-512.png": "301a7604d45b3e739efc881eb04896ea",
