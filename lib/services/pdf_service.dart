@@ -53,7 +53,7 @@ class PdfService {
           ),
         ),
         pw.SizedBox(height: 16),
-        _buildFooterInfo(),
+        _buildFooterInfo(project),
         pw.SizedBox(height: 12),
         _buildCompanyFooter(),
       ],
@@ -571,7 +571,7 @@ class PdfService {
     );
   }
 
-  pw.Widget _buildFooterInfo() {
+  pw.Widget _buildFooterInfo(ProjectModel project) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
