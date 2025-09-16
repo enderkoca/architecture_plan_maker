@@ -15,6 +15,7 @@ class PreviewCanvas extends ConsumerWidget {
     final project = ref.watch(projectProvider);
     final visibleKatlar = ref.watch(visibleKatlarProvider);
     final toplamInsaatAlani = ref.watch(toplamInsaatAlaniProvider);
+    final toplamInsaatAlaniOtoparkDahil = project.toplamInsaatAlaniOtoparkDahil;
     final muteahhitToplam = ref.watch(muteahhitToplamYeniBrutProvider);
     final toprakSahibiToplam = ref.watch(toprakSahibiToplamYeniBrutProvider);
     final isDark = ref.watch(themeProvider.notifier).isDark;
@@ -32,6 +33,7 @@ class PreviewCanvas extends ConsumerWidget {
                 _buildSummaryCard(
                   context,
                   toplamInsaatAlani,
+                  toplamInsaatAlaniOtoparkDahil,
                   muteahhitToplam,
                   toprakSahibiToplam,
                   isDark,
@@ -41,7 +43,7 @@ class PreviewCanvas extends ConsumerWidget {
                 if (visibleKatlar.isEmpty)
                   _buildEmptyState(context)
                 else
-                  ...visibleKatlar.map((kat) => _buildFloorCard(context, kat, isDark)),
+                  _buildReorderableFloors(context, visibleKatlar, isDark, ref),
                 const SizedBox(height: 16),
                 if (project.showOtopark) _buildOtoparkSection(context),
               ],
@@ -55,6 +57,7 @@ class PreviewCanvas extends ConsumerWidget {
   Widget _buildSummaryCard(
     BuildContext context,
     double toplamInsaatAlani,
+    double toplamInsaatAlaniOtoparkDahil,
     double muteahhitToplam,
     double toprakSahibiToplam,
     bool isDark,
@@ -79,7 +82,7 @@ class PreviewCanvas extends ConsumerWidget {
               Expanded(
                 child: _buildSummaryItem(
                   context,
-                  'Toplam İnşaat Alanı',
+                  'İnşaat Alanı',
                   NumberFormatter.formatArea(toplamInsaatAlani),
                   Icons.business,
                   Theme.of(context).colorScheme.primary,
@@ -88,12 +91,26 @@ class PreviewCanvas extends ConsumerWidget {
               Container(
                 width: 1,
                 color: Theme.of(context).dividerColor,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
               ),
               Expanded(
                 child: _buildSummaryItem(
                   context,
-                  'Müteahhit Toplam',
+                  'Otopark Dahil',
+                  NumberFormatter.formatArea(toplamInsaatAlaniOtoparkDahil),
+                  Icons.local_parking,
+                  Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+              Container(
+                width: 1,
+                color: Theme.of(context).dividerColor,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+              ),
+              Expanded(
+                child: _buildSummaryItem(
+                  context,
+                  'Müteahhit',
                   NumberFormatter.formatArea(muteahhitToplam),
                   Icons.engineering,
                   UnitColors.getBorderColor(true, isDark),
@@ -102,12 +119,12 @@ class PreviewCanvas extends ConsumerWidget {
               Container(
                 width: 1,
                 color: Theme.of(context).dividerColor,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
               ),
               Expanded(
                 child: _buildSummaryItem(
                   context,
-                  'Toprak Sahibi Toplam',
+                  'Toprak Sahibi',
                   NumberFormatter.formatArea(toprakSahibiToplam),
                   Icons.person,
                   UnitColors.getBorderColor(false, isDark),
@@ -170,9 +187,74 @@ class PreviewCanvas extends ConsumerWidget {
     );
   }
 
+  Widget _buildReorderableFloors(BuildContext context, List visibleKatlar, bool isDark, WidgetRef ref) {
+    return Column(
+      children: visibleKatlar.asMap().entries.map((entry) {
+        final index = entry.key;
+        final floor = entry.value;
+        return _buildDraggableFloorCard(context, floor, index, visibleKatlar, isDark, ref);
+      }).toList(),
+    );
+  }
+
+  Widget _buildDraggableFloorCard(BuildContext context, floor, int index, List visibleKatlar, bool isDark, WidgetRef ref) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: LongPressDraggable<int>(
+        data: index,
+        feedback: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(12),
+          child: Opacity(
+            opacity: 0.8,
+            child: SizedBox(
+              width: 400,
+              child: _buildFloorCard(context, floor, isDark),
+            ),
+          ),
+        ),
+        childWhenDragging: Opacity(
+          opacity: 0.5,
+          child: _buildFloorCard(context, floor, isDark),
+        ),
+        child: DragTarget<int>(
+          onWillAcceptWithDetails: (details) => details.data != index,
+          onAcceptWithDetails: (details) {
+            final oldIndex = details.data;
+            final newIndex = index;
+            
+            // Visible katların index'lerini gerçek project.katlar index'lerine çevir
+            final project = ref.read(projectProvider);
+            final oldRealIndex = project.katlar.indexOf(visibleKatlar[oldIndex]);
+            final newRealIndex = project.katlar.indexOf(visibleKatlar[newIndex]);
+            
+            if (oldRealIndex != -1 && newRealIndex != -1) {
+              ref.read(projectProvider.notifier).reorderFloors(oldRealIndex, newRealIndex);
+            }
+          },
+          builder: (context, candidateData, rejectedData) {
+            final isHovering = candidateData.isNotEmpty;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: isHovering
+                    ? Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      )
+                    : null,
+              ),
+              child: _buildFloorCard(context, floor, isDark),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildFloorCard(BuildContext context, floor, bool isDark) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -182,10 +264,24 @@ class PreviewCanvas extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  floor.ad,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.drag_handle,
+                        color: Theme.of(context).colorScheme.outline,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          floor.ad,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Container(
@@ -230,15 +326,84 @@ class PreviewCanvas extends ConsumerWidget {
                 ),
               )
             else
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: floor.daireler.map<Widget>((unit) {
-                  return _buildUnitCard(context, unit, isDark);
-                }).toList(),
+              Consumer(
+                builder: (context, ref, child) {
+                  return _buildDraggableUnits(context, floor, isDark, ref);
+                },
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDraggableUnits(BuildContext context, floor, bool isDark, WidgetRef ref) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: floor.daireler.asMap().entries.map<Widget>((entry) {
+        final index = entry.key;
+        final unit = entry.value;
+        return _buildDraggableUnitCard(context, floor, unit, index, isDark, ref);
+      }).toList(),
+    );
+  }
+
+  Widget _buildDraggableUnitCard(BuildContext context, floor, UnitModel unit, int index, bool isDark, WidgetRef ref) {
+    return LongPressDraggable<Map<String, dynamic>>(
+      data: {
+        'type': 'unit',
+        'floorId': floor.id,
+        'unitIndex': index,
+        'unit': unit,
+      },
+      feedback: Material(
+        elevation: 8,
+        borderRadius: BorderRadius.circular(8),
+        child: Opacity(
+          opacity: 0.8,
+          child: SizedBox(
+            width: 140,
+            child: _buildUnitCard(context, unit, isDark),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.5,
+        child: _buildUnitCard(context, unit, isDark),
+      ),
+      child: DragTarget<Map<String, dynamic>>(
+        onWillAcceptWithDetails: (details) {
+          final data = details.data;
+          return data['type'] == 'unit' && 
+                 data['floorId'] == floor.id && 
+                 data['unitIndex'] != index;
+        },
+        onAcceptWithDetails: (details) {
+          final data = details.data;
+          final oldIndex = data['unitIndex'] as int;
+          final newIndex = index;
+          
+          if (oldIndex != newIndex) {
+            ref.read(projectProvider.notifier).reorderUnits(floor.id, oldIndex, newIndex);
+          }
+        },
+        builder: (context, candidateData, rejectedData) {
+          final isHovering = candidateData.isNotEmpty;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: isHovering
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
+                    )
+                  : null,
+            ),
+            child: _buildUnitCard(context, unit, isDark),
+          );
+        },
       ),
     );
   }
@@ -264,10 +429,25 @@ class PreviewCanvas extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                unit.ad,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.drag_indicator,
+                      color: Theme.of(context).colorScheme.outline,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        unit.ad,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Container(
@@ -312,22 +492,72 @@ class PreviewCanvas extends ConsumerWidget {
   }
 
   Widget _buildOtoparkSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade300,
-        border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(
-        child: Text(
-          'OTOPARK',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Colors.grey.shade700,
+    return Consumer(
+      builder: (context, ref, child) {
+        final project = ref.watch(projectProvider);
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
           ),
-        ),
-      ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.local_parking,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'OTOPARK',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              if (project.otoparkAlani > 0) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    NumberFormatter.formatArea(project.otoparkAlani),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Alan belirtilmemiş',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 

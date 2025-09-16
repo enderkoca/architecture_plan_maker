@@ -8,12 +8,27 @@ enum Malik {
   final String displayName;
 }
 
+enum CepheTarafi {
+  kuzey('Kuzey'),
+  guney('Güney'),
+  dogu('Doğu'),
+  bati('Batı'),
+  kuzeydogu('Kuzey-Doğu'),
+  kuzeybati('Kuzey-Batı'),
+  guneydongu('Güney-Doğu'),
+  guneybati('Güney-Batı');
+
+  const CepheTarafi(this.displayName);
+  final String displayName;
+}
+
 @immutable
 class UnitModel {
   const UnitModel({
     required this.id,
     required this.ad,
     required this.malik,
+    this.cepheTarafi,
     this.eskiBrut,
     this.yeniBrut,
   });
@@ -21,6 +36,7 @@ class UnitModel {
   final String id;
   final String ad;
   final Malik malik;
+  final CepheTarafi? cepheTarafi;
   final double? eskiBrut;
   final double? yeniBrut;
 
@@ -28,6 +44,7 @@ class UnitModel {
     String? id,
     String? ad,
     Malik? malik,
+    CepheTarafi? cepheTarafi,
     double? eskiBrut,
     double? yeniBrut,
   }) {
@@ -35,6 +52,7 @@ class UnitModel {
       id: id ?? this.id,
       ad: ad ?? this.ad,
       malik: malik ?? this.malik,
+      cepheTarafi: cepheTarafi ?? this.cepheTarafi,
       eskiBrut: eskiBrut ?? this.eskiBrut,
       yeniBrut: yeniBrut ?? this.yeniBrut,
     );
@@ -45,6 +63,7 @@ class UnitModel {
       'id': id,
       'ad': ad,
       'malik': malik.name,
+      'cepheTarafi': cepheTarafi?.name,
       'eskiBrut': eskiBrut,
       'yeniBrut': yeniBrut,
     };
@@ -55,6 +74,9 @@ class UnitModel {
       id: json['id'] as String,
       ad: json['ad'] as String,
       malik: Malik.values.byName(json['malik'] as String),
+      cepheTarafi: json['cepheTarafi'] != null 
+          ? CepheTarafi.values.byName(json['cepheTarafi'] as String) 
+          : null,
       eskiBrut: json['eskiBrut'] as double?,
       yeniBrut: json['yeniBrut'] as double?,
     );
@@ -67,17 +89,18 @@ class UnitModel {
         other.id == id &&
         other.ad == ad &&
         other.malik == malik &&
+        other.cepheTarafi == cepheTarafi &&
         other.eskiBrut == eskiBrut &&
         other.yeniBrut == yeniBrut;
   }
 
   @override
   int get hashCode {
-    return Object.hash(id, ad, malik, eskiBrut, yeniBrut);
+    return Object.hash(id, ad, malik, cepheTarafi, eskiBrut, yeniBrut);
   }
 
   @override
   String toString() {
-    return 'UnitModel(id: $id, ad: $ad, malik: $malik, eskiBrut: $eskiBrut, yeniBrut: $yeniBrut)';
+    return 'UnitModel(id: $id, ad: $ad, malik: $malik, cepheTarafi: $cepheTarafi, eskiBrut: $eskiBrut, yeniBrut: $yeniBrut)';
   }
 }

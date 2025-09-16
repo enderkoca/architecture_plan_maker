@@ -62,7 +62,17 @@ class _FloorTileState extends ConsumerState<FloorTile> {
                 widget.floor.collapsed ? Icons.expand_more : Icons.expand_less,
               ),
             ),
-            title: Text(widget.floor.ad),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.drag_handle,
+                  color: Theme.of(context).colorScheme.outline,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: Text(widget.floor.ad)),
+              ],
+            ),
             subtitle: Text(NumberFormatter.formatArea(widget.floor.alan)),
             trailing: PopupMenuButton<String>(
               onSelected: (value) {
@@ -98,6 +108,8 @@ class _FloorTileState extends ConsumerState<FloorTile> {
                             labelText: 'Kat Adı',
                             isDense: true,
                           ),
+                          textDirection: TextDirection.ltr,
+                          enableInteractiveSelection: true,
                           onChanged: (value) {
                             ref.read(projectProvider.notifier).updateFloor(
                               widget.floor.id,
@@ -118,6 +130,8 @@ class _FloorTileState extends ConsumerState<FloorTile> {
                           keyboardType: TextInputType.number,
                           inputFormatters: [DecimalTextInputFormatter()],
                           maxLength: 7, // 5 hane + nokta + ondalık
+                          textDirection: TextDirection.ltr,
+                          enableInteractiveSelection: true,
                           onChanged: (value) {
                             final alan = NumberFormatter.parseNumber(value) ?? 0.0;
                             ref.read(projectProvider.notifier).updateFloor(
@@ -137,6 +151,8 @@ class _FloorTileState extends ConsumerState<FloorTile> {
                       isDense: true,
                     ),
                     maxLines: 2,
+                    textDirection: TextDirection.ltr,
+                    enableInteractiveSelection: true,
                     onChanged: (value) {
                       ref.read(projectProvider.notifier).updateFloor(
                         widget.floor.id,
@@ -172,11 +188,22 @@ class _FloorTileState extends ConsumerState<FloorTile> {
                       ),
                     )
                   else
-                    ...widget.floor.daireler.map((unit) => UnitRow(
-                      key: ValueKey(unit.id),
-                      floorId: widget.floor.id,
-                      unit: unit,
-                    )),
+                    ReorderableListView(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      onReorder: (oldIndex, newIndex) {
+                        if (newIndex > oldIndex) newIndex--;
+                        ref.read(projectProvider.notifier).reorderUnits(widget.floor.id, oldIndex, newIndex);
+                      },
+                      children: widget.floor.daireler.asMap().entries.map((entry) {
+                        final unit = entry.value;
+                        return UnitRow(
+                          key: ValueKey(unit.id),
+                          floorId: widget.floor.id,
+                          unit: unit,
+                        );
+                      }).toList(),
+                    ),
                 ],
               ),
             ),

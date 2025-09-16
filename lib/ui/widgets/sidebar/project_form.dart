@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../state/project_provider.dart';
+import '../../../core/formatters.dart';
 
 class ProjectForm extends ConsumerStatefulWidget {
   const ProjectForm({super.key});
@@ -14,6 +15,7 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
   late TextEditingController _adresController;
   late TextEditingController _malSahibiController;
   late TextEditingController _cizenController;
+  late TextEditingController _otoparkAlaniController;
 
   @override
   void initState() {
@@ -22,6 +24,7 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     _adresController = TextEditingController();
     _malSahibiController = TextEditingController();
     _cizenController = TextEditingController();
+    _otoparkAlaniController = TextEditingController();
   }
 
   @override
@@ -30,6 +33,7 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     _adresController.dispose();
     _malSahibiController.dispose();
     _cizenController.dispose();
+    _otoparkAlaniController.dispose();
     super.dispose();
   }
 
@@ -49,6 +53,10 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     }
     if (_cizenController.text != project.cizen) {
       _cizenController.text = project.cizen;
+    }
+    final otoparkText = project.otoparkAlani > 0 ? project.otoparkAlani.toString() : '';
+    if (_otoparkAlaniController.text != otoparkText) {
+      _otoparkAlaniController.text = otoparkText;
     }
 
     return Card(
@@ -70,6 +78,8 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
                 labelText: 'Proje Adı',
                 hintText: 'Proje adını giriniz',
               ),
+              textDirection: TextDirection.ltr,
+              enableInteractiveSelection: true,
               onChanged: (value) {
                 ref.read(projectProvider.notifier).updateProjectInfo(
                   projeAdi: value,
@@ -84,6 +94,8 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
                 hintText: 'Proje adresini giriniz',
               ),
               maxLines: 2,
+              textDirection: TextDirection.ltr,
+              enableInteractiveSelection: true,
               onChanged: (value) {
                 ref.read(projectProvider.notifier).updateProjectInfo(
                   adres: value,
@@ -97,6 +109,8 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
                 labelText: 'Mal Sahibi',
                 hintText: 'Mal sahibi adını giriniz',
               ),
+              textDirection: TextDirection.ltr,
+              enableInteractiveSelection: true,
               onChanged: (value) {
                 ref.read(projectProvider.notifier).updateProjectInfo(
                   malSahibi: value,
@@ -110,9 +124,29 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
                 labelText: 'Çizen',
                 hintText: 'Mimar/çizen adını giriniz',
               ),
+              textDirection: TextDirection.ltr,
+              enableInteractiveSelection: true,
               onChanged: (value) {
                 ref.read(projectProvider.notifier).updateProjectInfo(
                   cizen: value,
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _otoparkAlaniController,
+              decoration: const InputDecoration(
+                labelText: 'Otopark Alanı (m²)',
+                hintText: 'Otopark alanını giriniz',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [DecimalTextInputFormatter()],
+              textDirection: TextDirection.ltr,
+              enableInteractiveSelection: true,
+              onChanged: (value) {
+                final alan = NumberFormatter.parseNumber(value) ?? 0.0;
+                ref.read(projectProvider.notifier).updateProjectInfo(
+                  otoparkAlani: alan,
                 );
               },
             ),

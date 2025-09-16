@@ -61,9 +61,15 @@ class _UnitRowState extends ConsumerState<UnitRow> {
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            // İlk satır: Daire adı ve sil butonu
+            // İlk satır: Drag handle, Daire adı ve sil butonu
             Row(
               children: [
+                Icon(
+                  Icons.drag_handle,
+                  color: Theme.of(context).colorScheme.outline,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: TextFormField(
                     controller: _adController,
@@ -71,6 +77,8 @@ class _UnitRowState extends ConsumerState<UnitRow> {
                       labelText: 'Daire Adı',
                       isDense: true,
                     ),
+                    textDirection: TextDirection.ltr,
+                    enableInteractiveSelection: true,
                     onChanged: (value) {
                       ref.read(projectProvider.notifier).updateUnit(
                         widget.floorId,
@@ -95,7 +103,7 @@ class _UnitRowState extends ConsumerState<UnitRow> {
             const SizedBox(height: 8),
             // İkinci satır: Malik dropdown
             DropdownButtonFormField<Malik>(
-              value: widget.unit.malik,
+              initialValue: widget.unit.malik,
               isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Malik',
@@ -122,7 +130,43 @@ class _UnitRowState extends ConsumerState<UnitRow> {
               },
             ),
             const SizedBox(height: 8),
-            // Üçüncü satır: Eski Brüt
+            // Üçüncü satır: Cephe Tarafı
+            DropdownButtonFormField<CepheTarafi>(
+              initialValue: widget.unit.cepheTarafi,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Cephe Tarafı',
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              items: [
+                const DropdownMenuItem<CepheTarafi>(
+                  value: null,
+                  child: Text(
+                    'Seçilmedi',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ),
+                ...CepheTarafi.values.map((cephe) {
+                  return DropdownMenuItem(
+                    value: cephe,
+                    child: Text(
+                      cephe.displayName,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  );
+                }),
+              ],
+              onChanged: (value) {
+                ref.read(projectProvider.notifier).updateUnit(
+                  widget.floorId,
+                  widget.unit.id,
+                  cepheTarafi: value,
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            // Dördüncü satır: Eski Brüt
             TextFormField(
               controller: _eskiBrutController,
               decoration: const InputDecoration(
@@ -133,6 +177,8 @@ class _UnitRowState extends ConsumerState<UnitRow> {
               keyboardType: TextInputType.number,
               inputFormatters: [DecimalTextInputFormatter()],
               maxLength: 7, // 5 hane + nokta + ondalık
+              textDirection: TextDirection.ltr,
+              enableInteractiveSelection: true,
               onChanged: (value) {
                 final eskiBrut = NumberFormatter.parseNumber(value);
                 ref.read(projectProvider.notifier).updateUnit(
@@ -143,7 +189,7 @@ class _UnitRowState extends ConsumerState<UnitRow> {
               },
             ),
             const SizedBox(height: 8),
-            // Dördüncü satır: Yeni Brüt
+            // Beşinci satır: Yeni Brüt
             TextFormField(
               controller: _yeniBrutController,
               decoration: const InputDecoration(
@@ -154,6 +200,8 @@ class _UnitRowState extends ConsumerState<UnitRow> {
               keyboardType: TextInputType.number,
               inputFormatters: [DecimalTextInputFormatter()],
               maxLength: 7, // 5 hane + nokta + ondalık
+              textDirection: TextDirection.ltr,
+              enableInteractiveSelection: true,
               onChanged: (value) {
                 final yeniBrut = NumberFormatter.parseNumber(value);
                 ref.read(projectProvider.notifier).updateUnit(

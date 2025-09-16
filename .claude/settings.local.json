@@ -18,7 +18,11 @@
       "Bash(vercel:*)",
       "Bash(git push:*)",
       "Bash(npx netlify-cli deploy:*)",
-      "Bash(npx surge:*)"
+      "Bash(npx surge:*)",
+      "Bash(npx vercel:*)",
+      "Bash(flutter:*)",
+      "Bash(grep:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

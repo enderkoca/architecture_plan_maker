@@ -12,6 +12,7 @@ class ProjectModel {
     this.cizen = '',
     this.showCati = true,
     this.showOtopark = true,
+    this.otoparkAlani = 0.0,
   });
 
   final String projeAdi;
@@ -21,9 +22,14 @@ class ProjectModel {
   final List<FloorModel> katlar;
   final bool showCati;
   final bool showOtopark;
+  final double otoparkAlani;
 
   double get toplamInsaatAlani {
     return katlar.fold(0.0, (sum, kat) => sum + kat.alan);
+  }
+
+  double get toplamInsaatAlaniOtoparkDahil {
+    return toplamInsaatAlani + otoparkAlani;
   }
 
   double get muteahhitToplamYeniBrut {
@@ -48,6 +54,7 @@ class ProjectModel {
     List<FloorModel>? katlar,
     bool? showCati,
     bool? showOtopark,
+    double? otoparkAlani,
   }) {
     return ProjectModel(
       projeAdi: projeAdi ?? this.projeAdi,
@@ -57,6 +64,7 @@ class ProjectModel {
       katlar: katlar ?? this.katlar,
       showCati: showCati ?? this.showCati,
       showOtopark: showOtopark ?? this.showOtopark,
+      otoparkAlani: otoparkAlani ?? this.otoparkAlani,
     );
   }
 
@@ -69,6 +77,7 @@ class ProjectModel {
       'katlar': katlar.map((k) => k.toJson()).toList(),
       'showCati': showCati,
       'showOtopark': showOtopark,
+      'otoparkAlani': otoparkAlani,
     };
   }
 
@@ -83,6 +92,7 @@ class ProjectModel {
           .toList(),
       showCati: json['showCati'] as bool? ?? true,
       showOtopark: json['showOtopark'] as bool? ?? true,
+      otoparkAlani: json['otoparkAlani'] as double? ?? 0.0,
     );
   }
 
@@ -96,7 +106,8 @@ class ProjectModel {
         other.cizen == cizen &&
         listEquals(other.katlar, katlar) &&
         other.showCati == showCati &&
-        other.showOtopark == showOtopark;
+        other.showOtopark == showOtopark &&
+        other.otoparkAlani == otoparkAlani;
   }
 
   @override
@@ -109,11 +120,12 @@ class ProjectModel {
       Object.hashAll(katlar),
       showCati,
       showOtopark,
+      otoparkAlani,
     );
   }
 
   @override
   String toString() {
-    return 'ProjectModel(projeAdi: $projeAdi, adres: $adres, malSahibi: $malSahibi, cizen: $cizen, katlar: ${katlar.length}, showCati: $showCati, showOtopark: $showOtopark)';
+    return 'ProjectModel(projeAdi: $projeAdi, adres: $adres, malSahibi: $malSahibi, cizen: $cizen, katlar: ${katlar.length}, showCati: $showCati, showOtopark: $showOtopark, otoparkAlani: $otoparkAlani)';
   }
 }

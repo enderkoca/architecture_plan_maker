@@ -25,12 +25,13 @@ class ProjectNotifier extends StateNotifier<ProjectModel> {
     await _persistenceService.saveProject(state);
   }
 
-  void updateProjectInfo({String? projeAdi, String? adres, String? malSahibi, String? cizen}) {
+  void updateProjectInfo({String? projeAdi, String? adres, String? malSahibi, String? cizen, double? otoparkAlani}) {
     state = state.copyWith(
       projeAdi: projeAdi ?? state.projeAdi,
       adres: adres ?? state.adres,
       malSahibi: malSahibi ?? state.malSahibi,
       cizen: cizen ?? state.cizen,
+      otoparkAlani: otoparkAlani ?? state.otoparkAlani,
     );
     _saveProject();
   }
@@ -61,6 +62,31 @@ class ProjectNotifier extends StateNotifier<ProjectModel> {
   void removeFloor(String floorId) {
     state = state.copyWith(
       katlar: state.katlar.where((floor) => floor.id != floorId).toList(),
+    );
+    _saveProject();
+  }
+
+  void reorderFloors(int oldIndex, int newIndex) {
+    final floors = List<FloorModel>.from(state.katlar);
+    final floor = floors.removeAt(oldIndex);
+    floors.insert(newIndex, floor);
+    
+    state = state.copyWith(katlar: floors);
+    _saveProject();
+  }
+
+  void reorderUnits(String floorId, int oldIndex, int newIndex) {
+    state = state.copyWith(
+      katlar: state.katlar.map((floor) {
+        if (floor.id == floorId) {
+          final units = List<UnitModel>.from(floor.daireler);
+          final unit = units.removeAt(oldIndex);
+          units.insert(newIndex, unit);
+          
+          return floor.copyWith(daireler: units);
+        }
+        return floor;
+      }).toList(),
     );
     _saveProject();
   }
@@ -135,6 +161,7 @@ class ProjectNotifier extends StateNotifier<ProjectModel> {
     String unitId, {
     String? ad,
     Malik? malik,
+    CepheTarafi? cepheTarafi,
     double? eskiBrut,
     double? yeniBrut,
   }) {
@@ -147,6 +174,7 @@ class ProjectNotifier extends StateNotifier<ProjectModel> {
                 return unit.copyWith(
                   ad: ad ?? unit.ad,
                   malik: malik ?? unit.malik,
+                  cepheTarafi: cepheTarafi ?? unit.cepheTarafi,
                   eskiBrut: eskiBrut ?? unit.eskiBrut,
                   yeniBrut: yeniBrut ?? unit.yeniBrut,
                 );

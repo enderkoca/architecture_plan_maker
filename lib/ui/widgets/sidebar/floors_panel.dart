@@ -64,10 +64,21 @@ class FloorsPanel extends ConsumerWidget {
                 ),
               )
             else
-              ...project.katlar.map((floor) => FloorTile(
-                key: ValueKey(floor.id),
-                floor: floor,
-              )),
+              ReorderableListView(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                onReorder: (oldIndex, newIndex) {
+                  if (newIndex > oldIndex) newIndex--;
+                  ref.read(projectProvider.notifier).reorderFloors(oldIndex, newIndex);
+                },
+                children: project.katlar.asMap().entries.map((entry) {
+                  final floor = entry.value;
+                  return FloorTile(
+                    key: ValueKey(floor.id),
+                    floor: floor,
+                  );
+                }).toList(),
+              ),
           ],
         ),
       ),

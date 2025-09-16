@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/sidebar/project_form.dart';
 import '../widgets/sidebar/view_toggles.dart';
 import '../widgets/sidebar/floors_panel.dart';
@@ -160,6 +161,14 @@ class _ActionButtons extends ConsumerWidget {
           },
           icon: const Icon(Icons.refresh),
           label: const Text('Yeni Proje'),
+        ),
+        const SizedBox(height: 8),
+        ElevatedButton.icon(
+          onPressed: () {
+            context.push('/cost');
+          },
+          icon: const Icon(Icons.calculate),
+          label: const Text('Maliyet Hesaplama'),
         ),
         const SizedBox(height: 8),
         ElevatedButton.icon(
