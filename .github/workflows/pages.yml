@@ -3,8 +3,6 @@ name: Build and Deploy Flutter Web to GitHub Pages
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 permissions:
   contents: read
@@ -27,6 +25,10 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
+        flutter-version: '3.24.0'
+        
+    - name: Enable web support
+      run: flutter config --enable-web
         
     - name: Clean and Install dependencies
       run: |
@@ -34,7 +36,7 @@ jobs:
         flutter pub get
       
     - name: Build web
-      run: flutter build web --release --base-href /architecture-plan-maker/
+      run: flutter build web --release --base-href /architecture_plan_maker/
       
     - name: Setup Pages
       uses: actions/configure-pages@v4
