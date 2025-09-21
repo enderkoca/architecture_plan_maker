@@ -6,6 +6,20 @@ import '../data/models/unit.dart';
 import '../core/formatters.dart';
 
 class PdfService {
+  // Proportional width calculation for PDF
+  double _calculateProportionalWidth(double area, List<dynamic> allFloors, double maxWidth) {
+    if (allFloors.isEmpty) return maxWidth;
+    
+    final maxArea = allFloors.fold<double>(0.0, (max, floor) => 
+        floor.toplamAlan > max ? floor.toplamAlan : max);
+    
+    if (maxArea == 0) return maxWidth;
+    
+    // Minimum %40, maximum %100 width for PDF
+    final proportion = (area / maxArea).clamp(0.4, 1.0);
+    return maxWidth * proportion;
+  }
+
   Future<void> generateAndDownloadPDF(ProjectModel project, {bool buildingOnly = false}) async {
     final pdf = pw.Document();
     
@@ -154,7 +168,7 @@ class PdfService {
         // Katlar (en üstten başlayarak)
         ...sortedKatlar.map((kat) => 
           pw.Expanded(
-            child: _buildScaledFloorCard(kat, sortedKatlar.length, font, fontBold),
+            child: _buildScaledFloorCard(kat, project, sortedKatlar.length, font, fontBold),
           ),
         ),
         
@@ -162,14 +176,14 @@ class PdfService {
         if (project.showTicariAlan)
           pw.Container(
             height: _calculateCommercialHeight(sortedKatlar.length),
-            child: _buildCommercialSection(font, fontBold),
+            child: _buildCommercialSection(project, font, fontBold),
           ),
         
         // Otopark en altta
         if (project.showOtopark)
           pw.Container(
             height: _calculateOtoparkHeight(sortedKatlar.length),
-            child: _buildOtoparkSection(font, fontBold),
+            child: _buildOtoparkSection(project, font, fontBold),
           ),
       ],
     );
@@ -372,70 +386,77 @@ class PdfService {
       ..strokePath();
   }
 
-  pw.Widget _buildScaledFloorCard(floor, int totalFloors, pw.Font font, pw.Font fontBold) {
+  pw.Widget _buildScaledFloorCard(floor, ProjectModel project, int totalFloors, pw.Font font, pw.Font fontBold) {
     // Kat sayısına göre ölçeklendirme faktörü hesapla
     final fontSize = _calculateFontSize(totalFloors);
     final unitSize = _calculateUnitSize(totalFloors);
     final padding = _calculatePadding(totalFloors);
     
-    return pw.Container(
-      margin: pw.EdgeInsets.only(bottom: padding / 2),
-      padding: pw.EdgeInsets.all(padding),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey300),
-        borderRadius: pw.BorderRadius.circular(2),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
+    // Proportional width calculation
+    final maxWidth = 450.0; // PDF page width
+    final cardWidth = _calculateProportionalWidth(floor.toplamAlan, project.katlar, maxWidth);
+    
+    return pw.Center(
+      child: pw.Container(
+        width: cardWidth,
+        margin: pw.EdgeInsets.only(bottom: padding / 2),
+        padding: pw.EdgeInsets.all(padding),
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: PdfColors.grey300),
+          borderRadius: pw.BorderRadius.circular(2),
+        ),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  floor.ad,
+                  style: pw.TextStyle(
+                    fontSize: fontSize.title,
+                    fontWeight: pw.FontWeight.bold,
+                    font: fontBold,
+                  ),
+                ),
+                pw.Container(
+                  padding: pw.EdgeInsets.symmetric(horizontal: padding, vertical: padding / 4),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.blue100,
+                    borderRadius: pw.BorderRadius.circular(6),
+                  ),
+                  child: pw.Text(
+                    NumberFormatter.formatArea(floor.toplamAlan),
+                    style: pw.TextStyle(fontSize: fontSize.area, font: font),
+                  ),
+                ),
+              ],
+            ),
+            if (floor.aciklama != null && floor.aciklama!.isNotEmpty) ...[
+              pw.SizedBox(height: padding / 4),
               pw.Text(
-                floor.ad,
-                style: pw.TextStyle(
-                  fontSize: fontSize.title,
-                  fontWeight: pw.FontWeight.bold,
-                  font: fontBold,
-                ),
-              ),
-              pw.Container(
-                padding: pw.EdgeInsets.symmetric(horizontal: padding, vertical: padding / 4),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.blue100,
-                  borderRadius: pw.BorderRadius.circular(6),
-                ),
-                child: pw.Text(
-                  NumberFormatter.formatArea(floor.toplamAlan),
-                  style: pw.TextStyle(fontSize: fontSize.area, font: font),
-                ),
+                floor.aciklama!,
+                style: pw.TextStyle(fontSize: fontSize.description, color: PdfColors.grey, font: font),
               ),
             ],
-          ),
-          if (floor.aciklama != null && floor.aciklama!.isNotEmpty) ...[
-            pw.SizedBox(height: padding / 4),
-            pw.Text(
-              floor.aciklama!,
-              style: pw.TextStyle(fontSize: fontSize.description, color: PdfColors.grey, font: font),
-            ),
-          ],
-          pw.SizedBox(height: padding / 2),
-          if (floor.daireler.isEmpty)
-            pw.Text(
-              'Bu kata henüz daire eklenmemiş',
-              style: pw.TextStyle(fontSize: fontSize.description, color: PdfColors.grey, font: font),
-            )
-          else
-            pw.Expanded(
-              child: pw.Wrap(
-                spacing: padding / 2,
-                runSpacing: padding / 2,
-                children: floor.daireler.map<pw.Widget>((unit) {
-                  return _buildScaledUnitBox(unit, unitSize, fontSize, font, fontBold);
-                }).toList(),
+            pw.SizedBox(height: padding / 2),
+            if (floor.daireler.isEmpty)
+              pw.Text(
+                'Bu kata henüz daire eklenmemiş',
+                style: pw.TextStyle(fontSize: fontSize.description, color: PdfColors.grey, font: font),
+              )
+            else
+              pw.Expanded(
+                child: pw.Wrap(
+                  spacing: padding / 2,
+                  runSpacing: padding / 2,
+                  children: floor.daireler.map<pw.Widget>((unit) {
+                    return _buildScaledUnitBox(unit, unitSize, fontSize, font, fontBold);
+                  }).toList(),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -545,46 +566,58 @@ class PdfService {
   }
 
 
-  pw.Widget _buildCommercialSection(pw.Font font, pw.Font fontBold) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 8),
-      padding: const pw.EdgeInsets.all(8),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.orange50,
-        border: pw.Border.all(color: PdfColors.orange200),
-        borderRadius: pw.BorderRadius.circular(4),
-      ),
-      child: pw.Center(
-        child: pw.Text(
-          'TİCARİ ALAN / DÜKKAN',
-          style: pw.TextStyle(
-            fontSize: 10,
-            fontWeight: pw.FontWeight.bold,
-            color: PdfColors.orange700,
-            font: fontBold,
+  pw.Widget _buildCommercialSection(ProjectModel project, pw.Font font, pw.Font fontBold) {
+    final maxWidth = 450.0;
+    final cardWidth = _calculateProportionalWidth(project.ticariOrtakAlani, project.katlar, maxWidth);
+    
+    return pw.Center(
+      child: pw.Container(
+        width: cardWidth,
+        margin: const pw.EdgeInsets.only(top: 8),
+        padding: const pw.EdgeInsets.all(8),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.orange50,
+          border: pw.Border.all(color: PdfColors.orange200),
+          borderRadius: pw.BorderRadius.circular(4),
+        ),
+        child: pw.Center(
+          child: pw.Text(
+            'TİCARİ ALAN / DÜKKAN',
+            style: pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.orange700,
+              font: fontBold,
+            ),
           ),
         ),
       ),
     );
   }
 
-  pw.Widget _buildOtoparkSection(pw.Font font, pw.Font fontBold) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 8),
-      padding: const pw.EdgeInsets.all(8),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.grey300,
-        border: pw.Border.all(color: PdfColors.grey400),
-        borderRadius: pw.BorderRadius.circular(4),
-      ),
-      child: pw.Center(
-        child: pw.Text(
-          'OTOPARK',
-          style: pw.TextStyle(
-            fontSize: 10,
-            fontWeight: pw.FontWeight.bold,
-            color: PdfColors.grey700,
-            font: fontBold,
+  pw.Widget _buildOtoparkSection(ProjectModel project, pw.Font font, pw.Font fontBold) {
+    final maxWidth = 450.0;
+    final cardWidth = _calculateProportionalWidth(project.otoparkAlani, project.katlar, maxWidth);
+    
+    return pw.Center(
+      child: pw.Container(
+        width: cardWidth,
+        margin: const pw.EdgeInsets.only(top: 8),
+        padding: const pw.EdgeInsets.all(8),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.grey300,
+          border: pw.Border.all(color: PdfColors.grey400),
+          borderRadius: pw.BorderRadius.circular(4),
+        ),
+        child: pw.Center(
+          child: pw.Text(
+            'OTOPARK',
+            style: pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.grey700,
+              font: fontBold,
+            ),
           ),
         ),
       ),

@@ -10,6 +10,20 @@ import '../../../theme.dart';
 class PreviewCanvas extends ConsumerWidget {
   const PreviewCanvas({super.key});
 
+  // Proportional width calculation
+  double _calculateProportionalWidth(double area, List<dynamic> allFloors, double maxWidth) {
+    if (allFloors.isEmpty) return maxWidth;
+    
+    final maxArea = allFloors.fold<double>(0.0, (max, floor) => 
+        floor.toplamAlan > max ? floor.toplamAlan : max);
+    
+    if (maxArea == 0) return maxWidth;
+    
+    // Minimum %40, maximum %100 width
+    final proportion = (area / maxArea).clamp(0.4, 1.0);
+    return maxWidth * proportion;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(projectProvider);
@@ -201,218 +215,232 @@ class PreviewCanvas extends ConsumerWidget {
   Widget _buildDraggableFloorCard(BuildContext context, floor, int index, List visibleKatlar, bool isDark, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: LongPressDraggable<int>(
-        data: index,
-        feedback: Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(12),
-          child: Opacity(
-            opacity: 0.8,
-            child: SizedBox(
-              width: 400,
-              child: _buildFloorCard(context, floor, isDark),
+      child: Center(
+        child: LongPressDraggable<int>(
+          data: index,
+          feedback: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
+            child: Opacity(
+              opacity: 0.8,
+              child: SizedBox(
+                width: 400,
+                child: _buildFloorCard(context, floor, isDark),
+              ),
             ),
           ),
-        ),
-        childWhenDragging: Opacity(
-          opacity: 0.5,
-          child: _buildFloorCard(context, floor, isDark),
-        ),
-        child: DragTarget<int>(
-          onWillAcceptWithDetails: (details) => details.data != index,
-          onAcceptWithDetails: (details) {
-            final oldIndex = details.data;
-            final newIndex = index;
-            
-            // Visible katların index'lerini gerçek project.katlar index'lerine çevir
-            final project = ref.read(projectProvider);
-            final oldRealIndex = project.katlar.indexOf(visibleKatlar[oldIndex]);
-            final newRealIndex = project.katlar.indexOf(visibleKatlar[newIndex]);
-            
-            if (oldRealIndex != -1 && newRealIndex != -1) {
-              ref.read(projectProvider.notifier).reorderFloors(oldRealIndex, newRealIndex);
-            }
-          },
-          builder: (context, candidateData, rejectedData) {
-            final isHovering = candidateData.isNotEmpty;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: isHovering
-                    ? Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      )
-                    : null,
-              ),
-              child: _buildFloorCard(context, floor, isDark),
-            );
-          },
+          childWhenDragging: Opacity(
+            opacity: 0.5,
+            child: _buildFloorCard(context, floor, isDark),
+          ),
+          child: DragTarget<int>(
+            onWillAcceptWithDetails: (details) => details.data != index,
+            onAcceptWithDetails: (details) {
+              final oldIndex = details.data;
+              final newIndex = index;
+              
+              // Visible katların index'lerini gerçek project.katlar index'lerine çevir
+              final project = ref.read(projectProvider);
+              final oldRealIndex = project.katlar.indexOf(visibleKatlar[oldIndex]);
+              final newRealIndex = project.katlar.indexOf(visibleKatlar[newIndex]);
+              
+              if (oldRealIndex != -1 && newRealIndex != -1) {
+                ref.read(projectProvider.notifier).reorderFloors(oldRealIndex, newRealIndex);
+              }
+            },
+            builder: (context, candidateData, rejectedData) {
+              final isHovering = candidateData.isNotEmpty;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: isHovering
+                      ? Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        )
+                      : null,
+                ),
+                child: _buildFloorCard(context, floor, isDark),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
   Widget _buildFloorCard(BuildContext context, floor, bool isDark) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Row(
+    return Consumer(
+      builder: (context, ref, child) {
+        final project = ref.watch(projectProvider);
+        final allFloors = project.katlar;
+        final maxWidth = MediaQuery.of(context).size.width > 800 ? 800.0 : MediaQuery.of(context).size.width - 48;
+        final cardWidth = _calculateProportionalWidth(floor.toplamAlan, allFloors, maxWidth);
+        
+        return SizedBox(
+          width: cardWidth,
+          child: Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(
-                        Icons.drag_handle,
-                        color: Theme.of(context).colorScheme.outline,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
                       Expanded(
-                        child: Consumer(
-                          builder: (context, ref, child) {
-                            return GestureDetector(
-                              onTap: () => _showFloorNameEditDialog(context, floor, ref),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.edit,
-                                    color: Theme.of(context).colorScheme.outline,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      floor.ad,
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.drag_handle,
+                              color: Theme.of(context).colorScheme.outline,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Consumer(
+                                builder: (context, ref, child) {
+                                  return GestureDetector(
+                                    onTap: () => _showFloorNameEditDialog(context, floor, ref),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.edit,
+                                          color: Theme.of(context).colorScheme.outline,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            floor.ad,
+                                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
-                            );
-                          },
+                            ),
+                            const SizedBox(width: 8),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                return IconButton(
+                                  onPressed: () {
+                                    ref.read(projectProvider.notifier).copyFloor(floor.id);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Kat kopyalandı'),
+                                        duration: Duration(seconds: 1),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.copy),
+                                  iconSize: 20,
+                                  tooltip: 'Katı Kopyala',
+                                  visualDensity: VisualDensity.compact,
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Consumer(
-                        builder: (context, ref, child) {
-                          return IconButton(
-                            onPressed: () {
-                              ref.read(projectProvider.notifier).copyFloor(floor.id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Kat kopyalandı'),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.copy),
-                            iconSize: 20,
-                            tooltip: 'Katı Kopyala',
-                            visualDensity: VisualDensity.compact,
-                          );
-                        },
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                return TextFormField(
+                                  initialValue: floor.ortakAlan > 0 ? floor.ortakAlan.toString() : '',
+                                  decoration: InputDecoration(
+                                    labelText: 'Ortak Alan',
+                                    hintText: '0',
+                                    isDense: true,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [DecimalTextInputFormatter()],
+                                  textDirection: TextDirection.ltr,
+                                  enableInteractiveSelection: true,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                  onChanged: (value) {
+                                    final ortakAlan = NumberFormatter.parseNumber(value) ?? 0.0;
+                                    ref.read(projectProvider.notifier).updateFloor(
+                                      floor.id,
+                                      ortakAlan: ortakAlan,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              NumberFormatter.formatArea(floor.toplamAlan),
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSecondaryContainer,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      child: Consumer(
-                        builder: (context, ref, child) {
-                          return TextFormField(
-                            initialValue: floor.ortakAlan > 0 ? floor.ortakAlan.toString() : '',
-                            decoration: InputDecoration(
-                              labelText: 'Ortak Alan',
-                              hintText: '0',
-                              isDense: true,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 6,
-                              ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [DecimalTextInputFormatter()],
-                            textDirection: TextDirection.ltr,
-                            enableInteractiveSelection: true,
-                            style: Theme.of(context).textTheme.bodySmall,
-                            onChanged: (value) {
-                              final ortakAlan = NumberFormatter.parseNumber(value) ?? 0.0;
-                              ref.read(projectProvider.notifier).updateFloor(
-                                floor.id,
-                                ortakAlan: ortakAlan,
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        NumberFormatter.formatArea(floor.toplamAlan),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSecondaryContainer,
-                        ),
+                  if (floor.aciklama != null && floor.aciklama!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      floor.aciklama!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
-                ),
-              ],
-            ),
-            if (floor.aciklama != null && floor.aciklama!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                floor.aciklama!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            if (floor.daireler.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(20),
-                child: Center(
-                  child: Text(
-                    'Bu kata henüz daire eklenmemiş',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                  const SizedBox(height: 16),
+                  if (floor.daireler.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Center(
+                        child: Text(
+                          'Bu kata henüz daire eklenmemiş',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Consumer(
+                      builder: (context, ref, child) {
+                        return _buildDraggableUnits(context, floor, isDark, ref);
+                      },
                     ),
-                  ),
-                ),
-              )
-            else
-              Consumer(
-                builder: (context, ref, child) {
-                  return _buildDraggableUnits(context, floor, isDark, ref);
-                },
+                ],
               ),
-          ],
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -593,58 +621,67 @@ class PreviewCanvas extends ConsumerWidget {
     return Consumer(
       builder: (context, ref, child) {
         final project = ref.watch(projectProvider);
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.tertiaryContainer,
-            border: Border.all(
-              color: Theme.of(context).colorScheme.tertiary,
-              width: 1,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        final allFloors = project.katlar;
+        final maxWidth = MediaQuery.of(context).size.width > 800 ? 800.0 : MediaQuery.of(context).size.width - 48;
+        final cardWidth = _calculateProportionalWidth(project.ticariOrtakAlani, allFloors, maxWidth);
+        
+        return Center(
+          child: SizedBox(
+            width: cardWidth,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.tertiaryContainer,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.tertiary,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
                 children: [
-                  Icon(
-                    Icons.store,
-                    color: Theme.of(context).colorScheme.onTertiaryContainer,
-                    size: 24,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.store,
+                        color: Theme.of(context).colorScheme.onTertiaryContainer,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'TİCARİ ALAN / DÜKKAN',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onTertiaryContainer,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'TİCARİ ALAN / DÜKKAN',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                  if (project.ticariOrtakAlani > 0) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.tertiary,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        NumberFormatter.formatArea(project.ticariOrtakAlani),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onTertiary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
-              if (project.ticariOrtakAlani > 0) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.tertiary,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    NumberFormatter.formatArea(project.ticariOrtakAlani),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onTertiary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
         );
       },
@@ -655,66 +692,75 @@ class PreviewCanvas extends ConsumerWidget {
     return Consumer(
       builder: (context, ref, child) {
         final project = ref.watch(projectProvider);
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outline,
-              width: 1,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        final allFloors = project.katlar;
+        final maxWidth = MediaQuery.of(context).size.width > 800 ? 800.0 : MediaQuery.of(context).size.width - 48;
+        final cardWidth = _calculateProportionalWidth(project.otoparkAlani, allFloors, maxWidth);
+        
+        return Center(
+          child: SizedBox(
+            width: cardWidth,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
                 children: [
-                  Icon(
-                    Icons.local_parking,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    size: 24,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.local_parking,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'OTOPARK',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'OTOPARK',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  if (project.otoparkAlani > 0) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        NumberFormatter.formatArea(project.otoparkAlani),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
                     ),
-                  ),
+                  ] else ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Alan belirtilmemiş',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
                 ],
               ),
-              if (project.otoparkAlani > 0) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    NumberFormatter.formatArea(project.otoparkAlani),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
-                ),
-              ] else ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Alan belirtilmemiş',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
         );
       },
