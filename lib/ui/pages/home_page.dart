@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../widgets/sidebar/project_form.dart';
 import '../widgets/sidebar/view_toggles.dart';
 import '../widgets/sidebar/floors_panel.dart';
+import '../widgets/sidebar/project_summary.dart';
 import '../widgets/canvas/preview_canvas.dart';
 import '../../services/pdf_service.dart';
 import '../../state/project_provider.dart';
@@ -109,6 +109,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           children: [
             ProjectForm(),
             SizedBox(height: 16),
+            ProjectSummary(),
+            SizedBox(height: 16),
             ViewToggles(),
             SizedBox(height: 16),
             FloorsPanel(),
@@ -121,15 +123,47 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _downloadPDF(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('PDF İndir'),
+        content: const Text('Hangi türde PDF indirmek istiyorsunuz?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _generatePDF(context, buildingOnly: true);
+            },
+            icon: const Icon(Icons.home),
+            label: const Text('Sadece Bina'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _generatePDF(context, buildingOnly: false);
+            },
+            icon: const Icon(Icons.description),
+            label: const Text('Detaylı Rapor'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _generatePDF(BuildContext context, {required bool buildingOnly}) async {
     try {
       final project = ref.read(projectProvider);
       final pdfService = PdfService();
-      await pdfService.generateAndDownloadPDF(project);
+      await pdfService.generateAndDownloadPDF(project, buildingOnly: buildingOnly);
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('PDF başarıyla indirildi'),
+          SnackBar(
+            content: Text(buildingOnly ? 'Bina PDF\'i başarıyla indirildi' : 'Detaylı rapor PDF\'i başarıyla indirildi'),
             backgroundColor: Colors.green,
           ),
         );
@@ -161,14 +195,6 @@ class _ActionButtons extends ConsumerWidget {
           },
           icon: const Icon(Icons.refresh),
           label: const Text('Yeni Proje'),
-        ),
-        const SizedBox(height: 8),
-        ElevatedButton.icon(
-          onPressed: () {
-            context.push('/cost');
-          },
-          icon: const Icon(Icons.calculate),
-          label: const Text('Maliyet Hesaplama'),
         ),
         const SizedBox(height: 8),
         ElevatedButton.icon(

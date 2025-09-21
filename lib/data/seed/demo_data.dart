@@ -8,7 +8,6 @@ class DemoData {
       projeAdi: 'Örnek Mimari Projesi',
       adres: 'İstanbul, Beşiktaş - Örnek Mahalle, No: 123',
       malSahibi: 'Ahmet Yılmaz',
-      cizen: 'Mimar Ayşe Demir',
       showCati: true,
       showOtopark: true,
       katlar: [
@@ -133,7 +132,6 @@ class DemoData {
       projeAdi: '',
       adres: '',
       malSahibi: '',
-      cizen: '',
       katlar: [],
       showCati: true,
       showOtopark: true,

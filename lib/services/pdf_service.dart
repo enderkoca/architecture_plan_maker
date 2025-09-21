@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -297,7 +296,7 @@ class PdfService {
     }
 
     // 3. Dikey kiremit çizgileri - sol yarım
-    canvas..setLineWidth(0.3);
+    canvas.setLineWidth(0.3);
     for (int i = 0; i < 10; i++) {
       final x = roofOffsetX + (roofWidth * 0.08) + (i * (roofWidth * 0.04));
       final topY = size.y * (0.25 + i * 0.055);
@@ -361,7 +360,6 @@ class PdfService {
 
   pw.Widget _buildScaledFloorCard(floor, int totalFloors, pw.Font font, pw.Font fontBold) {
     // Kat sayısına göre ölçeklendirme faktörü hesapla
-    final scaleFactor = _calculateScaleFactor(totalFloors);
     final fontSize = _calculateFontSize(totalFloors);
     final unitSize = _calculateUnitSize(totalFloors);
     final padding = _calculatePadding(totalFloors);
@@ -428,18 +426,6 @@ class PdfService {
     );
   }
 
-  pw.Widget _buildFloorCard(floor, pw.Font font, pw.Font fontBold) {
-    // Backward compatibility için eski method'u koruyoruz
-    return _buildScaledFloorCard(floor, 3, font, fontBold);
-  }
-
-  double _calculateScaleFactor(int floorCount) {
-    if (floorCount <= 2) return 1.0;
-    if (floorCount <= 4) return 0.8;
-    if (floorCount <= 6) return 0.6;
-    if (floorCount <= 8) return 0.5;
-    return 0.4;
-  }
 
   ({double title, double area, double description, double unit}) _calculateFontSize(int floorCount) {
     if (floorCount <= 2) return (title: 12.0, area: 10.0, description: 8.0, unit: 7.0);
@@ -544,11 +530,6 @@ class PdfService {
     );
   }
 
-  pw.Widget _buildUnitBox(UnitModel unit, pw.Font font, pw.Font fontBold) {
-    // Backward compatibility için eski method'u koruyoruz
-    final fontSize = (title: 8.0, area: 7.0, description: 6.0, unit: 7.0);
-    return _buildScaledUnitBox(unit, 100.0, fontSize, font, fontBold);
-  }
 
   pw.Widget _buildOtoparkSection(pw.Font font, pw.Font fontBold) {
     return pw.Container(

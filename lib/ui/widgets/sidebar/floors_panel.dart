@@ -69,9 +69,13 @@ class FloorsPanel extends ConsumerWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 onReorder: (oldIndex, newIndex) {
                   if (newIndex > oldIndex) newIndex--;
-                  ref.read(projectProvider.notifier).reorderFloors(oldIndex, newIndex);
+                  // Convert reversed indices back to original indices
+                  final totalFloors = project.katlar.length;
+                  final originalOldIndex = totalFloors - 1 - oldIndex;
+                  final originalNewIndex = totalFloors - 1 - newIndex;
+                  ref.read(projectProvider.notifier).reorderFloors(originalOldIndex, originalNewIndex);
                 },
-                children: project.katlar.asMap().entries.map((entry) {
+                children: project.katlar.reversed.toList().asMap().entries.map((entry) {
                   final floor = entry.value;
                   return FloorTile(
                     key: ValueKey(floor.id),

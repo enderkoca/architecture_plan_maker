@@ -23,5 +23,5 @@ final visibleKatlarProvider = Provider((ref) {
       return project.showCati;
     }
     return true;
-  }).toList();
+  }).toList().reversed.toList();
 });

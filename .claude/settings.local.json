@@ -22,7 +22,11 @@
       "Bash(npx vercel:*)",
       "Bash(flutter:*)",
       "Bash(grep:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(git reset:*)",
+      "Bash(rm:*)",
+      "Bash(r)",
+      "Bash(open:*)"
     ],
     "deny": [],
     "ask": []

@@ -274,32 +274,110 @@ class PreviewCanvas extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          floor.ad,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Consumer(
+                          builder: (context, ref, child) {
+                            return GestureDetector(
+                              onTap: () => _showFloorNameEditDialog(context, floor, ref),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.edit,
+                                    color: Theme.of(context).colorScheme.outline,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      floor.ad,
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      Consumer(
+                        builder: (context, ref, child) {
+                          return IconButton(
+                            onPressed: () {
+                              ref.read(projectProvider.notifier).copyFloor(floor.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Kat kopyalandı'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.copy),
+                            iconSize: 20,
+                            tooltip: 'Katı Kopyala',
+                            visualDensity: VisualDensity.compact,
+                          );
+                        },
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    NumberFormatter.formatArea(floor.alan),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          return TextFormField(
+                            initialValue: floor.ortakAlan > 0 ? floor.ortakAlan.toString() : '',
+                            decoration: InputDecoration(
+                              labelText: 'Ortak Alan',
+                              hintText: '0',
+                              isDense: true,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 6,
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [DecimalTextInputFormatter()],
+                            textDirection: TextDirection.ltr,
+                            enableInteractiveSelection: true,
+                            style: Theme.of(context).textTheme.bodySmall,
+                            onChanged: (value) {
+                              final ortakAlan = NumberFormatter.parseNumber(value) ?? 0.0;
+                              ref.read(projectProvider.notifier).updateFloor(
+                                floor.id,
+                                ortakAlan: ortakAlan,
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        NumberFormatter.formatArea(floor.toplamAlan),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -364,13 +442,13 @@ class PreviewCanvas extends ConsumerWidget {
           opacity: 0.8,
           child: SizedBox(
             width: 140,
-            child: _buildUnitCard(context, unit, isDark),
+            child: _buildUnitCard(context, unit, isDark, floor, ref),
           ),
         ),
       ),
       childWhenDragging: Opacity(
         opacity: 0.5,
-        child: _buildUnitCard(context, unit, isDark),
+        child: _buildUnitCard(context, unit, isDark, floor, ref),
       ),
       child: DragTarget<Map<String, dynamic>>(
         onWillAcceptWithDetails: (details) {
@@ -401,92 +479,111 @@ class PreviewCanvas extends ConsumerWidget {
                     )
                   : null,
             ),
-            child: _buildUnitCard(context, unit, isDark),
+            child: _buildUnitCard(context, unit, isDark, floor, ref),
           );
         },
       ),
     );
   }
 
-  Widget _buildUnitCard(BuildContext context, UnitModel unit, bool isDark) {
+  Widget _buildUnitCard(BuildContext context, UnitModel unit, bool isDark, floor, WidgetRef ref) {
     final isMuteahhit = unit.malik == Malik.muteahhit;
     
-    return Container(
-      width: 140,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: UnitColors.getBackgroundColor(isMuteahhit, isDark),
-        border: Border.all(
-          color: UnitColors.getBorderColor(isMuteahhit, isDark),
-          width: 2,
+    return GestureDetector(
+      onTap: () => _showUnitEditDialog(context, unit, floor, ref),
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: UnitColors.getBackgroundColor(isMuteahhit, isDark),
+          border: Border.all(
+            color: UnitColors.getBorderColor(isMuteahhit, isDark),
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(8),
         ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.drag_indicator,
-                      color: Theme.of(context).colorScheme.outline,
-                      size: 12,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        unit.ad,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.edit,
+                        color: Theme.of(context).colorScheme.outline,
+                        size: 12,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          unit.ad,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: UnitColors.getBorderColor(isMuteahhit, isDark),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    isMuteahhit ? 'M' : 'TS',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (unit.cepheTarafi != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                margin: const EdgeInsets.only(bottom: 4),
                 decoration: BoxDecoration(
-                  color: UnitColors.getBorderColor(isMuteahhit, isDark),
-                  borderRadius: BorderRadius.circular(10),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  isMuteahhit ? 'M' : 'TS',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                  unit.cepheTarafi!.displayName,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (unit.eskiBrut != null)
-            Text(
-              'Eski: ${NumberFormatter.formatNumber(unit.eskiBrut)} m²',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          if (unit.yeniBrut != null)
-            Text(
-              'Yeni: ${NumberFormatter.formatNumber(unit.yeniBrut)} m²',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
+            if (unit.eskiBrut != null)
+              Text(
+                'Eski: ${NumberFormatter.formatNumber(unit.eskiBrut)} m²',
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-            ),
-          if (unit.eskiBrut == null && unit.yeniBrut == null)
-            Text(
-              'Alan belirtilmemiş',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
+            if (unit.yeniBrut != null)
+              Text(
+                'Yeni: ${NumberFormatter.formatNumber(unit.yeniBrut)} m²',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-        ],
+            if (unit.eskiBrut == null && unit.yeniBrut == null)
+              Text(
+                'Alan belirtilmemiş',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -591,6 +688,226 @@ class PreviewCanvas extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _showUnitEditDialog(BuildContext context, UnitModel unit, floor, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => _UnitEditDialog(
+        unit: unit,
+        floorId: floor.id,
+        ref: ref,
+      ),
+    );
+  }
+
+  void _showFloorNameEditDialog(BuildContext context, floor, WidgetRef ref) {
+    final controller = TextEditingController(text: floor.ad);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kat Adını Düzenle'),
+        content: TextFormField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Kat Adı',
+            border: OutlineInputBorder(),
+          ),
+          textDirection: TextDirection.ltr,
+          enableInteractiveSelection: true,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                ref.read(projectProvider.notifier).updateFloor(
+                  floor.id,
+                  ad: controller.text.trim(),
+                );
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    ).then((_) => controller.dispose());
+  }
+}
+
+class _UnitEditDialog extends StatefulWidget {
+  const _UnitEditDialog({
+    required this.unit,
+    required this.floorId,
+    required this.ref,
+  });
+
+  final UnitModel unit;
+  final String floorId;
+  final WidgetRef ref;
+
+  @override
+  State<_UnitEditDialog> createState() => _UnitEditDialogState();
+}
+
+class _UnitEditDialogState extends State<_UnitEditDialog> {
+  late TextEditingController _adController;
+  late TextEditingController _eskiBrutController;
+  late TextEditingController _yeniBrutController;
+  late Malik _selectedMalik;
+  late CepheTarafi? _selectedCepheTarafi;
+
+  @override
+  void initState() {
+    super.initState();
+    _adController = TextEditingController(text: widget.unit.ad);
+    _eskiBrutController = TextEditingController(
+      text: widget.unit.eskiBrut?.toString() ?? '',
+    );
+    _yeniBrutController = TextEditingController(
+      text: widget.unit.yeniBrut?.toString() ?? '',
+    );
+    _selectedMalik = widget.unit.malik;
+    _selectedCepheTarafi = widget.unit.cepheTarafi;
+  }
+
+  @override
+  void dispose() {
+    _adController.dispose();
+    _eskiBrutController.dispose();
+    _yeniBrutController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Daire Düzenle'),
+      content: SizedBox(
+        width: 400,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _adController,
+                decoration: const InputDecoration(
+                  labelText: 'Daire Adı',
+                  border: OutlineInputBorder(),
+                ),
+                textDirection: TextDirection.ltr,
+                enableInteractiveSelection: true,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<Malik>(
+                initialValue: _selectedMalik,
+                decoration: const InputDecoration(
+                  labelText: 'Malik',
+                  border: OutlineInputBorder(),
+                ),
+                items: Malik.values.map((malik) {
+                  return DropdownMenuItem(
+                    value: malik,
+                    child: Text(malik.displayName),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedMalik = value;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<CepheTarafi>(
+                initialValue: _selectedCepheTarafi,
+                decoration: const InputDecoration(
+                  labelText: 'Cephe Tarafı',
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  const DropdownMenuItem<CepheTarafi>(
+                    value: null,
+                    child: Text('Seçilmedi'),
+                  ),
+                  ...CepheTarafi.values.map((cephe) {
+                    return DropdownMenuItem(
+                      value: cephe,
+                      child: Text(cephe.displayName),
+                    );
+                  }),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCepheTarafi = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _eskiBrutController,
+                decoration: const InputDecoration(
+                  labelText: 'Eski Brüt (m²)',
+                  hintText: '99999',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [DecimalTextInputFormatter()],
+                textDirection: TextDirection.ltr,
+                enableInteractiveSelection: true,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _yeniBrutController,
+                decoration: const InputDecoration(
+                  labelText: 'Yeni Brüt (m²)',
+                  hintText: '99999',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [DecimalTextInputFormatter()],
+                textDirection: TextDirection.ltr,
+                enableInteractiveSelection: true,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('İptal'),
+        ),
+        ElevatedButton(
+          onPressed: _saveChanges,
+          child: const Text('Kaydet'),
+        ),
+      ],
+    );
+  }
+
+  void _saveChanges() {
+    final eskiBrut = NumberFormatter.parseNumber(_eskiBrutController.text);
+    final yeniBrut = NumberFormatter.parseNumber(_yeniBrutController.text);
+
+    widget.ref.read(projectProvider.notifier).updateUnit(
+      widget.floorId,
+      widget.unit.id,
+      ad: _adController.text,
+      malik: _selectedMalik,
+      cepheTarafi: _selectedCepheTarafi,
+      eskiBrut: eskiBrut,
+      yeniBrut: yeniBrut,
+    );
+
+    Navigator.of(context).pop();
   }
 }
 

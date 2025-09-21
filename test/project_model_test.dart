@@ -52,7 +52,8 @@ void main() {
     });
 
     test('toplamInsaatAlani hesaplama testi', () {
-      expect(project.toplamInsaatAlani, equals(190.0));
+      // Toplam alan = unit gross areas (60 + 55 + 50) + common areas (0 + 0)
+      expect(project.toplamInsaatAlani, equals(165.0));
     });
 
     test('muteahhitToplamYeniBrut hesaplama testi', () {

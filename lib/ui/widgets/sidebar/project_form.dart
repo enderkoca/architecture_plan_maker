@@ -14,7 +14,6 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
   late TextEditingController _projeAdiController;
   late TextEditingController _adresController;
   late TextEditingController _malSahibiController;
-  late TextEditingController _cizenController;
   late TextEditingController _otoparkAlaniController;
 
   @override
@@ -23,7 +22,6 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     _projeAdiController = TextEditingController();
     _adresController = TextEditingController();
     _malSahibiController = TextEditingController();
-    _cizenController = TextEditingController();
     _otoparkAlaniController = TextEditingController();
   }
 
@@ -32,7 +30,6 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     _projeAdiController.dispose();
     _adresController.dispose();
     _malSahibiController.dispose();
-    _cizenController.dispose();
     _otoparkAlaniController.dispose();
     super.dispose();
   }
@@ -50,9 +47,6 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     }
     if (_malSahibiController.text != project.malSahibi) {
       _malSahibiController.text = project.malSahibi;
-    }
-    if (_cizenController.text != project.cizen) {
-      _cizenController.text = project.cizen;
     }
     final otoparkText = project.otoparkAlani > 0 ? project.otoparkAlani.toString() : '';
     if (_otoparkAlaniController.text != otoparkText) {
@@ -114,21 +108,6 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
               onChanged: (value) {
                 ref.read(projectProvider.notifier).updateProjectInfo(
                   malSahibi: value,
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _cizenController,
-              decoration: const InputDecoration(
-                labelText: 'Çizen',
-                hintText: 'Mimar/çizen adını giriniz',
-              ),
-              textDirection: TextDirection.ltr,
-              enableInteractiveSelection: true,
-              onChanged: (value) {
-                ref.read(projectProvider.notifier).updateProjectInfo(
-                  cizen: value,
                 );
               },
             ),

@@ -1,3 +1,4 @@
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../../../data/models/project.dart';
 import '../../../data/models/unit.dart';
@@ -33,7 +34,7 @@ class PdfPainter {
         painter: (canvas, size) {
           // Çatı üçgeni çizimi
           canvas
-            ..setFillColor(const pw.PdfColor(1.0, 0.6, 0.0)) // Turuncu
+            ..setFillColor(const PdfColor(1.0, 0.6, 0.0)) // Turuncu
             ..moveTo(size.x * 0.3, size.y)
             ..lineTo(size.x * 0.5, 0)
             ..lineTo(size.x * 0.7, size.y)
@@ -49,7 +50,7 @@ class PdfPainter {
       margin: const pw.EdgeInsets.only(bottom: 12),
       padding: const pw.EdgeInsets.all(16),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: const pw.PdfColor(0.8, 0.8, 0.8)),
+        border: pw.Border.all(color: const PdfColor(0.8, 0.8, 0.8)),
         borderRadius: pw.BorderRadius.circular(8),
       ),
       child: pw.Column(
@@ -71,7 +72,7 @@ class PdfPainter {
                   vertical: 4,
                 ),
                 decoration: pw.BoxDecoration(
-                  color: const pw.PdfColor(0.9, 0.9, 1.0),
+                  color: const PdfColor(0.9, 0.9, 1.0),
                   borderRadius: pw.BorderRadius.circular(12),
                 ),
                 child: pw.Text(
@@ -90,7 +91,7 @@ class PdfPainter {
               floor.aciklama!,
               style: const pw.TextStyle(
                 fontSize: 9,
-                color: pw.PdfColor(0.5, 0.5, 0.5),
+                color: PdfColor(0.5, 0.5, 0.5),
               ),
             ),
           ],
@@ -103,7 +104,7 @@ class PdfPainter {
                   'Bu kata henüz daire eklenmemiş',
                   style: const pw.TextStyle(
                     fontSize: 10,
-                    color: pw.PdfColor(0.6, 0.6, 0.6),
+                    color: PdfColor(0.6, 0.6, 0.6),
                   ),
                 ),
               ),
@@ -129,12 +130,12 @@ class PdfPainter {
       padding: const pw.EdgeInsets.all(8),
       decoration: pw.BoxDecoration(
         color: isMuteahhit 
-          ? const pw.PdfColor(0.99, 0.91, 0.95) // Açık pembe
-          : const pw.PdfColor(1.0, 1.0, 1.0),   // Beyaz
+          ? const PdfColor(0.99, 0.91, 0.95) // Açık pembe
+          : const PdfColor(1.0, 1.0, 1.0),   // Beyaz
         border: pw.Border.all(
           color: isMuteahhit
-            ? const pw.PdfColor(0.98, 0.66, 0.83) // Pembe kenar
-            : const pw.PdfColor(0.5, 0.5, 0.5),   // Gri kenar
+            ? const PdfColor(0.98, 0.66, 0.83) // Pembe kenar
+            : const PdfColor(0.5, 0.5, 0.5),   // Gri kenar
           width: 1.5,
         ),
         borderRadius: pw.BorderRadius.circular(6),
@@ -156,15 +157,15 @@ class PdfPainter {
                 padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: pw.BoxDecoration(
                   color: isMuteahhit
-                    ? const pw.PdfColor(0.98, 0.66, 0.83)
-                    : const pw.PdfColor(0.5, 0.5, 0.5),
+                    ? const PdfColor(0.98, 0.66, 0.83)
+                    : const PdfColor(0.5, 0.5, 0.5),
                   borderRadius: pw.BorderRadius.circular(8),
                 ),
                 child: pw.Text(
                   isMuteahhit ? 'M' : 'TS',
                   style: const pw.TextStyle(
                     fontSize: 7,
-                    color: pw.PdfColor(1.0, 1.0, 1.0),
+                    color: PdfColor(1.0, 1.0, 1.0),
                   ),
                 ),
               ),
@@ -189,7 +190,7 @@ class PdfPainter {
               'Alan belirtilmemiş',
               style: const pw.TextStyle(
                 fontSize: 7,
-                color: pw.PdfColor(0.6, 0.6, 0.6),
+                color: PdfColor(0.6, 0.6, 0.6),
               ),
             ),
         ],
@@ -202,8 +203,8 @@ class PdfPainter {
       margin: const pw.EdgeInsets.only(top: 8),
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
-        color: const pw.PdfColor(0.9, 0.9, 0.9),
-        border: pw.Border.all(color: const pw.PdfColor(0.7, 0.7, 0.7)),
+        color: const PdfColor(0.9, 0.9, 0.9),
+        border: pw.Border.all(color: const PdfColor(0.7, 0.7, 0.7)),
         borderRadius: pw.BorderRadius.circular(6),
       ),
       child: pw.Center(
@@ -212,7 +213,7 @@ class PdfPainter {
           style: pw.TextStyle(
             fontSize: 12,
             fontWeight: pw.FontWeight.bold,
-            color: const pw.PdfColor(0.4, 0.4, 0.4),
+            color: const PdfColor(0.4, 0.4, 0.4),
           ),
         ),
       ),
@@ -230,7 +231,7 @@ class PdfPainter {
               style: pw.TextStyle(
                 fontSize: 16,
                 fontWeight: pw.FontWeight.bold,
-                color: const pw.PdfColor(0.6, 0.6, 0.6),
+                color: const PdfColor(0.6, 0.6, 0.6),
               ),
             ),
             pw.SizedBox(height: 8),
@@ -238,7 +239,7 @@ class PdfPainter {
               'Katlar ve daireler eklendikçe burada görünecek',
               style: const pw.TextStyle(
                 fontSize: 10,
-                color: pw.PdfColor(0.6, 0.6, 0.6),
+                color: PdfColor(0.6, 0.6, 0.6),
               ),
               textAlign: pw.TextAlign.center,
             ),

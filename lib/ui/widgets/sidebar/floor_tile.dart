@@ -16,24 +16,24 @@ class FloorTile extends ConsumerStatefulWidget {
 
 class _FloorTileState extends ConsumerState<FloorTile> {
   late TextEditingController _adController;
-  late TextEditingController _alanController;
   late TextEditingController _aciklamaController;
+  late TextEditingController _ortakAlanController;
 
   @override
   void initState() {
     super.initState();
     _adController = TextEditingController(text: widget.floor.ad);
-    _alanController = TextEditingController(
-      text: widget.floor.alan > 0 ? widget.floor.alan.toString() : '',
-    );
     _aciklamaController = TextEditingController(text: widget.floor.aciklama ?? '');
+    _ortakAlanController = TextEditingController(
+      text: widget.floor.ortakAlan > 0 ? widget.floor.ortakAlan.toString() : '',
+    );
   }
 
   @override
   void dispose() {
     _adController.dispose();
-    _alanController.dispose();
     _aciklamaController.dispose();
+    _ortakAlanController.dispose();
     super.dispose();
   }
 
@@ -42,8 +42,8 @@ class _FloorTileState extends ConsumerState<FloorTile> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.floor != widget.floor) {
       _adController.text = widget.floor.ad;
-      _alanController.text = widget.floor.alan > 0 ? widget.floor.alan.toString() : '';
       _aciklamaController.text = widget.floor.aciklama ?? '';
+      _ortakAlanController.text = widget.floor.ortakAlan > 0 ? widget.floor.ortakAlan.toString() : '';
     }
   }
 
@@ -71,16 +71,37 @@ class _FloorTileState extends ConsumerState<FloorTile> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(child: Text(widget.floor.ad)),
+                IconButton(
+                  onPressed: () {
+                    ref.read(projectProvider.notifier).copyFloor(widget.floor.id);
+                  },
+                  icon: const Icon(Icons.copy),
+                  iconSize: 16,
+                  tooltip: 'Katı Kopyala',
+                  visualDensity: VisualDensity.compact,
+                ),
               ],
             ),
-            subtitle: Text(NumberFormatter.formatArea(widget.floor.alan)),
+            subtitle: Text(NumberFormatter.formatArea(widget.floor.toplamAlan)),
             trailing: PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'delete') {
                   _showDeleteDialog();
+                } else if (value == 'copy') {
+                  ref.read(projectProvider.notifier).copyFloor(widget.floor.id);
                 }
               },
               itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'copy',
+                  child: Row(
+                    children: [
+                      Icon(Icons.copy, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Text('Katı Kopyala'),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem(
                   value: 'delete',
                   child: Row(
@@ -99,49 +120,41 @@ class _FloorTileState extends ConsumerState<FloorTile> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _adController,
-                          decoration: const InputDecoration(
-                            labelText: 'Kat Adı',
-                            isDense: true,
-                          ),
-                          textDirection: TextDirection.ltr,
-                          enableInteractiveSelection: true,
-                          onChanged: (value) {
-                            ref.read(projectProvider.notifier).updateFloor(
-                              widget.floor.id,
-                              ad: value,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _alanController,
-                          decoration: const InputDecoration(
-                            labelText: 'Alan (m²)',
-                            isDense: true,
-                            hintText: '99999',
-                          ),
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [DecimalTextInputFormatter()],
-                          maxLength: 7, // 5 hane + nokta + ondalık
-                          textDirection: TextDirection.ltr,
-                          enableInteractiveSelection: true,
-                          onChanged: (value) {
-                            final alan = NumberFormatter.parseNumber(value) ?? 0.0;
-                            ref.read(projectProvider.notifier).updateFloor(
-                              widget.floor.id,
-                              alan: alan,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                  TextFormField(
+                    controller: _adController,
+                    decoration: const InputDecoration(
+                      labelText: 'Kat Adı',
+                      isDense: true,
+                    ),
+                    textDirection: TextDirection.ltr,
+                    enableInteractiveSelection: true,
+                    onChanged: (value) {
+                      ref.read(projectProvider.notifier).updateFloor(
+                        widget.floor.id,
+                        ad: value,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _ortakAlanController,
+                    decoration: const InputDecoration(
+                      labelText: 'Ortak Alan (m²)',
+                      isDense: true,
+                      hintText: '99999',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [DecimalTextInputFormatter()],
+                    maxLength: 7,
+                    textDirection: TextDirection.ltr,
+                    enableInteractiveSelection: true,
+                    onChanged: (value) {
+                      final ortakAlan = NumberFormatter.parseNumber(value) ?? 0.0;
+                      ref.read(projectProvider.notifier).updateFloor(
+                        widget.floor.id,
+                        ortakAlan: ortakAlan,
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(

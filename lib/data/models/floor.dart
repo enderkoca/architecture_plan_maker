@@ -10,6 +10,7 @@ class FloorModel {
     required this.daireler,
     this.collapsed = false,
     this.aciklama,
+    this.ortakAlan = 0.0,
   });
 
   final String id;
@@ -18,6 +19,14 @@ class FloorModel {
   final List<UnitModel> daireler;
   final bool collapsed;
   final String? aciklama;
+  final double ortakAlan;
+
+  double get toplamAlan {
+    final dairelerToplami = daireler.fold<double>(0.0, (sum, daire) {
+      return sum + (daire.yeniBrut ?? daire.eskiBrut ?? 0.0);
+    });
+    return dairelerToplami + ortakAlan;
+  }
 
   FloorModel copyWith({
     String? id,
@@ -26,6 +35,7 @@ class FloorModel {
     List<UnitModel>? daireler,
     bool? collapsed,
     String? aciklama,
+    double? ortakAlan,
   }) {
     return FloorModel(
       id: id ?? this.id,
@@ -34,6 +44,7 @@ class FloorModel {
       daireler: daireler ?? this.daireler,
       collapsed: collapsed ?? this.collapsed,
       aciklama: aciklama ?? this.aciklama,
+      ortakAlan: ortakAlan ?? this.ortakAlan,
     );
   }
 
@@ -45,6 +56,7 @@ class FloorModel {
       'daireler': daireler.map((d) => d.toJson()).toList(),
       'collapsed': collapsed,
       'aciklama': aciklama,
+      'ortakAlan': ortakAlan,
     };
   }
 
@@ -58,6 +70,7 @@ class FloorModel {
           .toList(),
       collapsed: json['collapsed'] as bool? ?? false,
       aciklama: json['aciklama'] as String?,
+      ortakAlan: json['ortakAlan'] as double? ?? 0.0,
     );
   }
 
@@ -70,7 +83,8 @@ class FloorModel {
         other.alan == alan &&
         listEquals(other.daireler, daireler) &&
         other.collapsed == collapsed &&
-        other.aciklama == aciklama;
+        other.aciklama == aciklama &&
+        other.ortakAlan == ortakAlan;
   }
 
   @override
@@ -82,11 +96,12 @@ class FloorModel {
       Object.hashAll(daireler),
       collapsed,
       aciklama,
+      ortakAlan,
     );
   }
 
   @override
   String toString() {
-    return 'FloorModel(id: $id, ad: $ad, alan: $alan, daireler: ${daireler.length}, collapsed: $collapsed, aciklama: $aciklama)';
+    return 'FloorModel(id: $id, ad: $ad, alan: $alan, daireler: ${daireler.length}, collapsed: $collapsed, aciklama: $aciklama, ortakAlan: $ortakAlan)';
   }
 }
