@@ -11,7 +11,10 @@ class ProjectModel {
     this.malSahibi = '',
     this.showCati = true,
     this.showOtopark = true,
+    this.showTicariAlan = false,
     this.otoparkAlani = 0.0,
+    this.konutOrtakAlani = 0.0,
+    this.ticariOrtakAlani = 0.0,
   });
 
   final String projeAdi;
@@ -20,10 +23,13 @@ class ProjectModel {
   final List<FloorModel> katlar;
   final bool showCati;
   final bool showOtopark;
+  final bool showTicariAlan;
   final double otoparkAlani;
+  final double konutOrtakAlani;
+  final double ticariOrtakAlani;
 
   double get toplamInsaatAlani {
-    return katlar.fold(0.0, (sum, kat) => sum + kat.toplamAlan);
+    return katlar.fold(0.0, (sum, kat) => sum + kat.toplamAlan) + konutOrtakAlani + (showTicariAlan ? ticariOrtakAlani : 0.0);
   }
 
   double get toplamInsaatAlaniOtoparkDahil {
@@ -72,7 +78,10 @@ class ProjectModel {
     List<FloorModel>? katlar,
     bool? showCati,
     bool? showOtopark,
+    bool? showTicariAlan,
     double? otoparkAlani,
+    double? konutOrtakAlani,
+    double? ticariOrtakAlani,
   }) {
     return ProjectModel(
       projeAdi: projeAdi ?? this.projeAdi,
@@ -81,7 +90,10 @@ class ProjectModel {
       katlar: katlar ?? this.katlar,
       showCati: showCati ?? this.showCati,
       showOtopark: showOtopark ?? this.showOtopark,
+      showTicariAlan: showTicariAlan ?? this.showTicariAlan,
       otoparkAlani: otoparkAlani ?? this.otoparkAlani,
+      konutOrtakAlani: konutOrtakAlani ?? this.konutOrtakAlani,
+      ticariOrtakAlani: ticariOrtakAlani ?? this.ticariOrtakAlani,
     );
   }
 
@@ -93,7 +105,10 @@ class ProjectModel {
       'katlar': katlar.map((k) => k.toJson()).toList(),
       'showCati': showCati,
       'showOtopark': showOtopark,
+      'showTicariAlan': showTicariAlan,
       'otoparkAlani': otoparkAlani,
+      'konutOrtakAlani': konutOrtakAlani,
+      'ticariOrtakAlani': ticariOrtakAlani,
     };
   }
 
@@ -107,7 +122,10 @@ class ProjectModel {
           .toList(),
       showCati: json['showCati'] as bool? ?? true,
       showOtopark: json['showOtopark'] as bool? ?? true,
+      showTicariAlan: json['showTicariAlan'] as bool? ?? false,
       otoparkAlani: json['otoparkAlani'] as double? ?? 0.0,
+      konutOrtakAlani: json['konutOrtakAlani'] as double? ?? 0.0,
+      ticariOrtakAlani: json['ticariOrtakAlani'] as double? ?? 0.0,
     );
   }
 
@@ -121,7 +139,10 @@ class ProjectModel {
         listEquals(other.katlar, katlar) &&
         other.showCati == showCati &&
         other.showOtopark == showOtopark &&
-        other.otoparkAlani == otoparkAlani;
+        other.showTicariAlan == showTicariAlan &&
+        other.otoparkAlani == otoparkAlani &&
+        other.konutOrtakAlani == konutOrtakAlani &&
+        other.ticariOrtakAlani == ticariOrtakAlani;
   }
 
   @override
@@ -133,12 +154,15 @@ class ProjectModel {
       Object.hashAll(katlar),
       showCati,
       showOtopark,
+      showTicariAlan,
       otoparkAlani,
+      konutOrtakAlani,
+      ticariOrtakAlani,
     );
   }
 
   @override
   String toString() {
-    return 'ProjectModel(projeAdi: $projeAdi, adres: $adres, malSahibi: $malSahibi, katlar: ${katlar.length}, showCati: $showCati, showOtopark: $showOtopark, otoparkAlani: $otoparkAlani)';
+    return 'ProjectModel(projeAdi: $projeAdi, adres: $adres, malSahibi: $malSahibi, katlar: ${katlar.length}, showCati: $showCati, showOtopark: $showOtopark, showTicariAlan: $showTicariAlan, otoparkAlani: $otoparkAlani, konutOrtakAlani: $konutOrtakAlani, ticariOrtakAlani: $ticariOrtakAlani)';
   }
 }

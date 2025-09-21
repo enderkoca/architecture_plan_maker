@@ -25,20 +25,30 @@ class ProjectNotifier extends StateNotifier<ProjectModel> {
     await _persistenceService.saveProject(state);
   }
 
-  void updateProjectInfo({String? projeAdi, String? adres, String? malSahibi, double? otoparkAlani}) {
+  void updateProjectInfo({
+    String? projeAdi, 
+    String? adres, 
+    String? malSahibi, 
+    double? otoparkAlani,
+    double? konutOrtakAlani,
+    double? ticariOrtakAlani,
+  }) {
     state = state.copyWith(
       projeAdi: projeAdi ?? state.projeAdi,
       adres: adres ?? state.adres,
       malSahibi: malSahibi ?? state.malSahibi,
       otoparkAlani: otoparkAlani ?? state.otoparkAlani,
+      konutOrtakAlani: konutOrtakAlani ?? state.konutOrtakAlani,
+      ticariOrtakAlani: ticariOrtakAlani ?? state.ticariOrtakAlani,
     );
     _saveProject();
   }
 
-  void updateViewSettings({bool? showCati, bool? showOtopark}) {
+  void updateViewSettings({bool? showCati, bool? showOtopark, bool? showTicariAlan}) {
     state = state.copyWith(
       showCati: showCati ?? state.showCati,
       showOtopark: showOtopark ?? state.showOtopark,
+      showTicariAlan: showTicariAlan ?? state.showTicariAlan,
     );
     _saveProject();
   }

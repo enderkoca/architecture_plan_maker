@@ -15,6 +15,8 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
   late TextEditingController _adresController;
   late TextEditingController _malSahibiController;
   late TextEditingController _otoparkAlaniController;
+  late TextEditingController _konutOrtakAlaniController;
+  late TextEditingController _ticariOrtakAlaniController;
 
   @override
   void initState() {
@@ -23,6 +25,8 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     _adresController = TextEditingController();
     _malSahibiController = TextEditingController();
     _otoparkAlaniController = TextEditingController();
+    _konutOrtakAlaniController = TextEditingController();
+    _ticariOrtakAlaniController = TextEditingController();
   }
 
   @override
@@ -31,6 +35,8 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     _adresController.dispose();
     _malSahibiController.dispose();
     _otoparkAlaniController.dispose();
+    _konutOrtakAlaniController.dispose();
+    _ticariOrtakAlaniController.dispose();
     super.dispose();
   }
 
@@ -51,6 +57,16 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
     final otoparkText = project.otoparkAlani > 0 ? project.otoparkAlani.toString() : '';
     if (_otoparkAlaniController.text != otoparkText) {
       _otoparkAlaniController.text = otoparkText;
+    }
+    
+    final konutOrtakText = project.konutOrtakAlani > 0 ? project.konutOrtakAlani.toString() : '';
+    if (_konutOrtakAlaniController.text != konutOrtakText) {
+      _konutOrtakAlaniController.text = konutOrtakText;
+    }
+    
+    final ticariOrtakText = project.ticariOrtakAlani > 0 ? project.ticariOrtakAlani.toString() : '';
+    if (_ticariOrtakAlaniController.text != ticariOrtakText) {
+      _ticariOrtakAlaniController.text = ticariOrtakText;
     }
 
     return Card(
@@ -129,6 +145,44 @@ class _ProjectFormState extends ConsumerState<ProjectForm> {
                 );
               },
             ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _konutOrtakAlaniController,
+              decoration: const InputDecoration(
+                labelText: 'Konut Ortak Alanı (m²)',
+                hintText: 'Konut ortak alanını giriniz',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [DecimalTextInputFormatter()],
+              textDirection: TextDirection.ltr,
+              enableInteractiveSelection: true,
+              onChanged: (value) {
+                final alan = NumberFormatter.parseNumber(value) ?? 0.0;
+                ref.read(projectProvider.notifier).updateProjectInfo(
+                  konutOrtakAlani: alan,
+                );
+              },
+            ),
+            if (project.showTicariAlan) ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _ticariOrtakAlaniController,
+                decoration: const InputDecoration(
+                  labelText: 'Ticari Ortak Alanı (m²)',
+                  hintText: 'Ticari ortak alanını giriniz',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [DecimalTextInputFormatter()],
+                textDirection: TextDirection.ltr,
+                enableInteractiveSelection: true,
+                onChanged: (value) {
+                  final alan = NumberFormatter.parseNumber(value) ?? 0.0;
+                  ref.read(projectProvider.notifier).updateProjectInfo(
+                    ticariOrtakAlani: alan,
+                  );
+                },
+              ),
+            ],
           ],
         ),
       ),

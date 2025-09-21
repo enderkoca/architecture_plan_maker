@@ -44,6 +44,17 @@ class ViewToggles extends ConsumerWidget {
               },
               contentPadding: EdgeInsets.zero,
             ),
+            SwitchListTile(
+              title: const Text('Ticari Alan'),
+              subtitle: const Text('Ticari ortak alanını göster/gizle'),
+              value: project.showTicariAlan,
+              onChanged: (value) {
+                ref.read(projectProvider.notifier).updateViewSettings(
+                  showTicariAlan: value,
+                );
+              },
+              contentPadding: EdgeInsets.zero,
+            ),
           ],
         ),
       ),

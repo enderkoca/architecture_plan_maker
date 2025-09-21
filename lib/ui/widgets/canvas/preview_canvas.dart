@@ -45,6 +45,7 @@ class PreviewCanvas extends ConsumerWidget {
                 else
                   _buildReorderableFloors(context, visibleKatlar, isDark, ref),
                 const SizedBox(height: 16),
+                if (project.showTicariAlan) _buildCommercialSection(context),
                 if (project.showOtopark) _buildOtoparkSection(context),
               ],
             ),
@@ -585,6 +586,68 @@ class PreviewCanvas extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCommercialSection(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final project = ref.watch(projectProvider);
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.tertiaryContainer,
+            border: Border.all(
+              color: Theme.of(context).colorScheme.tertiary,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.store,
+                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'TİCARİ ALAN / DÜKKAN',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+              if (project.ticariOrtakAlani > 0) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.tertiary,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    NumberFormatter.formatArea(project.ticariOrtakAlani),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onTertiary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 

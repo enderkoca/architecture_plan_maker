@@ -21,6 +21,7 @@ class PdfPainter {
           _buildEmptyState()
         else
           ...visibleKatlar.map((kat) => _buildFloorSection(kat)),
+        if (project.showTicariAlan) _buildCommercialSection(),
         if (project.showOtopark) _buildOtoparkSection(),
       ],
     );
@@ -194,6 +195,28 @@ class PdfPainter {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  static pw.Widget _buildCommercialSection() {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 8),
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: const PdfColor(1.0, 0.9, 0.8),
+        border: pw.Border.all(color: const PdfColor(1.0, 0.6, 0.0)),
+        borderRadius: pw.BorderRadius.circular(6),
+      ),
+      child: pw.Center(
+        child: pw.Text(
+          'TİCARİ ALAN / DÜKKAN',
+          style: pw.TextStyle(
+            fontSize: 12,
+            fontWeight: pw.FontWeight.bold,
+            color: const PdfColor(0.8, 0.4, 0.0),
+          ),
+        ),
       ),
     );
   }

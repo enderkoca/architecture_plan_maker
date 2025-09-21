@@ -10,6 +10,10 @@ class DemoData {
       malSahibi: 'Ahmet Yılmaz',
       showCati: true,
       showOtopark: true,
+      showTicariAlan: true,
+      otoparkAlani: 150.0,
+      konutOrtakAlani: 120.0,
+      ticariOrtakAlani: 80.0,
       katlar: [
         FloorModel(
           id: 'zemin',
@@ -135,6 +139,10 @@ class DemoData {
       katlar: [],
       showCati: true,
       showOtopark: true,
+      showTicariAlan: false,
+      otoparkAlani: 0.0,
+      konutOrtakAlani: 0.0,
+      ticariOrtakAlani: 0.0,
     );
   }
 }

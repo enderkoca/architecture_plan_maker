@@ -158,6 +158,13 @@ class PdfService {
           ),
         ),
         
+        // Ticari alan (otopark üstünde)
+        if (project.showTicariAlan)
+          pw.Container(
+            height: _calculateCommercialHeight(sortedKatlar.length),
+            child: _buildCommercialSection(font, fontBold),
+          ),
+        
         // Otopark en altta
         if (project.showOtopark)
           pw.Container(
@@ -180,6 +187,13 @@ class PdfService {
     if (floorCount <= 3) return 30;
     if (floorCount <= 6) return 25;
     return 20;
+  }
+
+  double _calculateCommercialHeight(int floorCount) {
+    // Kat sayısına göre ticari alan yüksekliği hesapla
+    if (floorCount <= 3) return 35;
+    if (floorCount <= 6) return 30;
+    return 25;
   }
 
   pw.Widget _buildSummaryStrip(ProjectModel project, pw.Font font, pw.Font fontBold) {
@@ -530,6 +544,29 @@ class PdfService {
     );
   }
 
+
+  pw.Widget _buildCommercialSection(pw.Font font, pw.Font fontBold) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 8),
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.orange50,
+        border: pw.Border.all(color: PdfColors.orange200),
+        borderRadius: pw.BorderRadius.circular(4),
+      ),
+      child: pw.Center(
+        child: pw.Text(
+          'TİCARİ ALAN / DÜKKAN',
+          style: pw.TextStyle(
+            fontSize: 10,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.orange700,
+            font: fontBold,
+          ),
+        ),
+      ),
+    );
+  }
 
   pw.Widget _buildOtoparkSection(pw.Font font, pw.Font fontBold) {
     return pw.Container(
